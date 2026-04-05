@@ -8,8 +8,8 @@ An interactive terminal application built with **iocraft** for managing Cloudfla
 - ➕ Create new DNS records (A, AAAA, CNAME, MX, TXT, etc.)
 - 🗑️ Delete DNS records
 
+https://github.com/user-attachments/assets/c61a1d9b-c41d-4d63-822e-90cb93405184
 
-https://github.com/user-attachments/assets/9dd0ca03-6ea8-42cc-a7d7-9d3084a5030d
 
 ## Prerequisites
 
