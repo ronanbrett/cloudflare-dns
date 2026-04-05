@@ -1,5 +1,5 @@
 # Cloudflare DNS Manager Configuration
-# Save this file as: ~/.config/cloudflare-dns/config.yaml
+# Save this file as: ~/.config/cloudflaredns/config.yaml
 
 cloudflare:
   # Your Cloudflare API Token

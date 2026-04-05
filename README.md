@@ -2,7 +2,7 @@
 
 A TUI for managing Cloudflare DNS records programmatically.
 
-<img width="2882" height="2242" alt="CleanShot 2026-04-05 at 21 12 17@2x" src="https://github.com/user-attachments/assets/1afa7571-0e69-446b-890c-e199350c295e" />
+<img width="2646" height="2006" alt="Cloudflare Dns Editor" src="https://github.com/user-attachments/assets/82788d9d-adc6-491a-b73e-8b27d9540cd7" />
 
 
 ## Features
@@ -48,8 +48,8 @@ You have two options for configuration:
 # Create config directory
 mkdir -p ~/.config/cloudflaredns
 
-# Copy the example config file
-cp config.example.yaml ~/.config/cloudflaredns/config.yaml
+# Download the example config file
+curl -o ~/.config/cloudflaredns/config.yaml https://raw.githubusercontent.com/ronanbrett/cloudflare-dns/main/config.example.yaml
 
 # Edit with your credentials
 nano ~/.config/cloudflaredns/config.yaml

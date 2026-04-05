@@ -12,7 +12,7 @@ pub struct Config {
 
 impl Config {
     /// Load configuration with fallback chain:
-    /// 1. ~/.config/cloudflare-dns/config.yaml
+    /// 1. ~/.config/cloudflaredns/config.yaml
     /// 2. ./.env (current directory)
     /// 3. Environment variables
     pub fn load() -> Result<Self> {
@@ -72,7 +72,7 @@ impl Config {
         dirs::home_dir()
             .unwrap_or_default()
             .join(".config")
-            .join("cloudflare-dns")
+            .join("cloudflaredns")
             .join("config.yaml")
     }
 }
