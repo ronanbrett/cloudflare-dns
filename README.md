@@ -1,8 +1,9 @@
 # Cloudflare DNS Manager
 
-<img width="1323" height="1003" alt="image" src="https://github.com/user-attachments/assets/630eecfe-fa14-46a7-9b81-101a1fab550c" />
+A TUI for managing Cloudflare DNS records programmatically.
 
-An interactive terminal application built with **iocraft** for managing Cloudflare DNS records programmatically.
+<img width="2882" height="2242" alt="CleanShot 2026-04-05 at 21 12 17@2x" src="https://github.com/user-attachments/assets/1afa7571-0e69-446b-890c-e199350c295e" />
+
 
 ## Features
 
