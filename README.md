@@ -2,16 +2,25 @@
 
 A TUI for managing Cloudflare DNS records programmatically.
 
-<img width="2646" height="2006" alt="Cloudflare Dns Editor" src="https://github.com/user-attachments/assets/82788d9d-adc6-491a-b73e-8b27d9540cd7" />
 
 
 ## Features
 
-- 📋 List all DNS records in your Cloudflare zone
-- ➕ Create new DNS records (A, AAAA, CNAME, MX, TXT, etc.)
-- 🗑️ Delete DNS records
+📋 List all DNS records in your Cloudflare zone
 
+<img width="2646" height="2006" alt="CleanShot 2026-04-05 at 21 55 14@2x" src="https://github.com/user-attachments/assets/ce24acbb-2fc7-4777-bb09-082aa005d1cb" />
 
+➕ Create new DNS records (A, AAAA, CNAME, MX, TXT, etc.)
+
+<img width="2646" height="2006" alt="CleanShot 2026-04-05 at 21 55 25@2x" src="https://github.com/user-attachments/assets/08cb4b5f-4413-4eae-bc47-6531c80fa6b7" />
+
+✏️ Edit existing DNS records
+
+<img width="2646" height="2006" alt="CleanShot 2026-04-05 at 21 55 46@2x" src="https://github.com/user-attachments/assets/39d419a8-8bf2-4ee3-8925-14c4a0cdfb76" />
+
+🗑️ Delete DNS records
+
+<img width="2646" height="2006" alt="CleanShot 2026-04-05 at 21 54 55@2x" src="https://github.com/user-attachments/assets/1e810742-95f9-4d8e-9ef5-ce8bfb6da687" />
 
 
 ## Prerequisites
