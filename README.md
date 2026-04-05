@@ -7,8 +7,9 @@ An interactive terminal application built with **iocraft** for managing Cloudfla
 - 📋 List all DNS records in your Cloudflare zone
 - ➕ Create new DNS records (A, AAAA, CNAME, MX, TXT, etc.)
 - 🗑️ Delete DNS records
-- 🎨 Beautiful terminal UI with iocraft
-- 🔒 Secure credential management via environment variables
+
+
+https://github.com/user-attachments/assets/9dd0ca03-6ea8-42cc-a7d7-9d3084a5030d
 
 ## Prerequisites
 
