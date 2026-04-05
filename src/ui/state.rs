@@ -5,7 +5,7 @@
 use iocraft::prelude::*;
 use std::sync::{Arc, Mutex};
 
-use crate::api::{CloudflareClient, DnsRecord};
+use crate::api::{CloudflareClient, DnsCache, DnsRecord};
 
 /// Shared application state wrapped in Arc for thread-safe access.
 ///
@@ -19,6 +19,8 @@ pub struct AppState {
     pub records: Mutex<Vec<DnsRecord>>,
     /// Unique IPs extracted from A/AAAA records (for IP selector)
     pub existing_ips: Mutex<Vec<String>>,
+    /// Cache for DNS records to reduce redundant API calls
+    pub dns_cache: Mutex<DnsCache>,
 }
 
 impl AppState {
@@ -29,6 +31,7 @@ impl AppState {
             zone_name: Mutex::new(zone_id),
             records: Mutex::new(Vec::new()),
             existing_ips: Mutex::new(Vec::new()),
+            dns_cache: Mutex::new(DnsCache::with_default_ttl()),
         }
     }
 }

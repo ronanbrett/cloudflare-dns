@@ -50,6 +50,9 @@ pub async fn submit_task(mut params: SubmitParams) {
 
     match result {
         Ok(_) => {
+            // Invalidate cache after successful create/update
+            params.state.dns_cache.lock().unwrap().invalidate();
+
             let action = if is_update { "Updated" } else { "Created" };
             params.status.set(format!(
                 "{} {} for {}",
@@ -63,7 +66,8 @@ pub async fn submit_task(mut params: SubmitParams) {
             if let Ok(f) = params.client.list_dns_records().await {
                 params.records_display.set(format_records(&f));
                 *params.state.existing_ips.lock().unwrap() = extract_unique_ips(&f);
-                *params.state.records.lock().unwrap() = f;
+                *params.state.records.lock().unwrap() = f.clone();
+                params.state.dns_cache.lock().unwrap().set(f);
             } else {
                 params.status.set(format!(
                     "{} {} for {}, but refresh failed — press R to reload",

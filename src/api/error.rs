@@ -8,6 +8,7 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 pub enum CloudflareError {
     /// API returned an error response with specific error codes and messages.
+    #[allow(dead_code)]
     #[error("API error: {message} (code: {code})")]
     ApiError {
         /// The error code from Cloudflare API

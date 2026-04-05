@@ -1,7 +1,10 @@
-/// Caching layer for DNS records.
-///
-/// This module provides a simple in-memory cache with TTL (time-to-live) support
-/// to reduce redundant API calls when refreshing the UI.
+#![allow(dead_code)]
+
+//! Caching layer for DNS records.
+//!
+//! This module provides a simple in-memory cache with TTL (time-to-live) support
+//! to reduce redundant API calls when refreshing the UI.
+
 use std::time::{Duration, Instant};
 
 use crate::api::DnsRecord;

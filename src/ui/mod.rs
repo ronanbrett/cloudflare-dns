@@ -17,4 +17,5 @@ pub mod theme;
 
 // Re-export commonly used types
 pub use app::run_app;
+#[allow(unused_imports)]
 pub use state::{AppState, AppView};

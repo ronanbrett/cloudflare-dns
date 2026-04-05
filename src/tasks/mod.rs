@@ -9,6 +9,9 @@ pub mod delete_task;
 pub mod fetch_task;
 pub mod submit_task;
 
+#[allow(unused_imports)]
 pub use delete_task::{DeleteParams, delete_task};
+#[allow(unused_imports)]
 pub use fetch_task::{fetch_all, refresh_task};
+#[allow(unused_imports)]
 pub use submit_task::{SubmitParams, submit_task};

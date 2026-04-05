@@ -7,8 +7,10 @@ pub mod client;
 pub mod error;
 pub mod models;
 
-// Re-export commonly used types for convenience
+// Re-export commonly used types for library consumers
+#[allow(unused_imports)]
 pub use cache::DnsCache;
 pub use client::CloudflareClient;
+#[allow(unused_imports)]
 pub use error::{CloudflareError, CloudflareResult};
 pub use models::DnsRecord;

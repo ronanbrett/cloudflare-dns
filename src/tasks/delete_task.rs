@@ -23,6 +23,9 @@ pub struct DeleteParams {
 pub async fn delete_task(mut params: DeleteParams) {
     match params.client.delete_dns_record(&params.record_id).await {
         Ok(_) => {
+            // Invalidate cache after successful deletion
+            params.state.dns_cache.lock().unwrap().invalidate();
+
             params.status.set(format!(
                 "Deleted {} ({})",
                 params.record_name, params.record_type
@@ -33,7 +36,8 @@ pub async fn delete_task(mut params: DeleteParams) {
             if let Ok(f) = params.client.list_dns_records().await {
                 params.records_display.set(format_records(&f));
                 *params.state.existing_ips.lock().unwrap() = extract_unique_ips(&f);
-                *params.state.records.lock().unwrap() = f;
+                *params.state.records.lock().unwrap() = f.clone();
+                params.state.dns_cache.lock().unwrap().set(f);
             } else {
                 params.status.set(format!(
                     "Deleted {} ({}), but refresh failed — press R to reload",
