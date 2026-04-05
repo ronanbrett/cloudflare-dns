@@ -38,6 +38,7 @@ pub fn App(props: &AppProps, mut hooks: Hooks) -> impl Into<AnyElement<'static>>
 
     // IP selector
     let ip_sel_idx = hooks.use_state(|| 0);
+    let ip_sel_open = hooks.use_state(|| false);
 
     // List selection
     let list_sel_idx = hooks.use_state(|| 0);
@@ -59,6 +60,7 @@ pub fn App(props: &AppProps, mut hooks: Hooks) -> impl Into<AnyElement<'static>>
         is_submitting,
         editing_record_id,
         ip_sel_idx,
+        ip_sel_open,
         list_sel_idx,
         is_deleting,
         is_refreshing,
@@ -78,6 +80,7 @@ pub fn App(props: &AppProps, mut hooks: Hooks) -> impl Into<AnyElement<'static>>
     // ── Snapshot ────────────────────────────────────────────────────────
     let records = props.state.records.lock().unwrap().clone();
     let ips = props.state.existing_ips.lock().unwrap().clone();
+    let zone_name = props.state.zone_name.lock().unwrap().clone();
     let sel_text = format_selector(&ips, ip_sel_idx.get());
 
     let lsi = list_sel_idx.get();
@@ -120,11 +123,11 @@ pub fn App(props: &AppProps, mut hooks: Hooks) -> impl Into<AnyElement<'static>>
     // ── Render ──────────────────────────────────────────────────────────
     match view.get() {
         AppView::Delete => element! {
-            DeleteConfirm(rec_name: rec_name, deleting: is_deleting.get(), status: status_text)
+            DeleteConfirm(rec_name: rec_name, deleting: is_deleting.get(), status: status_text, zone_name: zone_name.clone())
         }
         .into_any(),
         AppView::IpSelect => element! {
-            IpSelector(sel_text: sel_text, status: status_text)
+            IpSelector(sel_text: sel_text, status: status_text, zone_name: zone_name.clone())
         }
         .into_any(),
         AppView::Create | AppView::Edit => {
@@ -150,6 +153,8 @@ pub fn App(props: &AppProps, mut hooks: Hooks) -> impl Into<AnyElement<'static>>
                     title: title.to_string(),
                     hint: hint.to_string(),
                     submit_label: if is_editing { "Save" } else { "Submit" },
+                    zone_name: zone_name.clone(),
+                    domain_suffix: format!(".{}", zone_name),
                 )
             }
             .into_any()
@@ -159,6 +164,7 @@ pub fn App(props: &AppProps, mut hooks: Hooks) -> impl Into<AnyElement<'static>>
                 records: records,
                 selected_idx: lsi as i32,
                 status: status_text,
+                zone_name: zone_name,
             )
         }
         .into_any(),

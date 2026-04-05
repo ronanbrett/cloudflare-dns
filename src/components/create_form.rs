@@ -15,6 +15,8 @@ pub struct CreateFormProps {
     pub title: String,
     pub hint: String,
     pub submit_label: String,
+    pub zone_name: String,
+    pub domain_suffix: String,
 }
 
 impl Default for CreateFormProps {
@@ -30,6 +32,8 @@ impl Default for CreateFormProps {
             title: " Create DNS Record ".to_string(),
             hint: "Tab: navigate | Space on IP: selector | Enter: submit | Esc: cancel".to_string(),
             submit_label: "Submit".to_string(),
+            zone_name: String::new(),
+            domain_suffix: String::new(),
         }
     }
 }
@@ -37,7 +41,7 @@ impl Default for CreateFormProps {
 #[component]
 pub fn CreateForm(props: &CreateFormProps, mut hooks: Hooks) -> impl Into<AnyElement<'static>> {
     let focus = props.form_focus;
-    let title = props.title.clone();
+    let title = format!(" {} — {} ", props.title.trim(), props.zone_name);
     let hint = props.hint.clone();
     let form_type = props.form_type;
     let form_name = props.form_name;
@@ -56,7 +60,7 @@ pub fn CreateForm(props: &CreateFormProps, mut hooks: Hooks) -> impl Into<AnyEle
                 padding_right: 3,
                 padding_top: 2,
                 padding_bottom: 2,
-                width: 65,
+                width: 80,
             ) {
                 View(flex_direction: FlexDirection::Column) {
                     View(margin_bottom: 1) {
@@ -66,7 +70,7 @@ pub fn CreateForm(props: &CreateFormProps, mut hooks: Hooks) -> impl Into<AnyEle
                         Text(content: hint, color: OVERLAY1)
                     }
                     FormField(label: "Type", value: form_type, has_focus: focus == 0)
-                    FormField(label: "Name", value: form_name, has_focus: focus == 1)
+                    FormField(label: "Name", value: form_name, has_focus: focus == 1, suffix: props.domain_suffix.clone())
                     FormField(label: "IP Address", value: form_content, has_focus: focus == 2)
                     FormField(label: "TTL", value: form_ttl, has_focus: focus == 3)
                     View(height: 2) { Text(content: "  (1 = auto)", color: OVERLAY1) }

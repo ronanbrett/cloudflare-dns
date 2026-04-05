@@ -8,11 +8,13 @@ pub struct RecordListProps {
     pub records: Vec<DnsRecord>,
     pub selected_idx: i32,
     pub status: String,
+    pub zone_name: String,
 }
 
 #[component]
 pub fn RecordList(props: &RecordListProps, mut hooks: Hooks) -> impl Into<AnyElement<'static>> {
     let sel = props.selected_idx as usize;
+    let title = format!(" ☁ Cloudflare DNS — {} ", props.zone_name);
     let rec_text = if props.records.is_empty() {
         "No DNS records found\n\n↑↓: navigate | [D]elete | [C]reate".to_string()
     } else {
@@ -47,9 +49,14 @@ pub fn RecordList(props: &RecordListProps, mut hooks: Hooks) -> impl Into<AnyEle
 
     render_app_layout(
         AppLayoutConfig {
+            border_color: BLUE,
+            title,
+            title_bg: YELLOW,
+            title_color: CRUST,
             menu: " [R]efresh  [C]reate  [E]dit  [D]elete  [Q]uit".to_string(),
+            menu_bg: SURFACE1,
+            menu_color: SUBTEXT1,
             status: props.status.clone(),
-            ..Default::default()
         },
         content,
         &mut hooks,

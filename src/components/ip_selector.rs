@@ -6,12 +6,14 @@ use iocraft::prelude::*;
 pub struct IpSelectorProps {
     pub sel_text: String,
     pub status: String,
+    pub zone_name: String,
 }
 
 #[component]
 pub fn IpSelector(props: &IpSelectorProps, mut hooks: Hooks) -> impl Into<AnyElement<'static>> {
     let sel_text = props.sel_text.clone();
-    
+    let title = format!(" ☁ Cloudflare DNS — {} ", props.zone_name);
+
     let content = element! {
         View(flex_grow: 1.0, align_items: AlignItems::Center, justify_content: JustifyContent::Center) {
             View(border_style: BorderStyle::Round, border_color: SAPPHIRE, background_color: MANTEL, padding_left: 1, padding_right: 1, padding_top: 2, padding_bottom: 2, width: 50) {
@@ -26,9 +28,14 @@ pub fn IpSelector(props: &IpSelectorProps, mut hooks: Hooks) -> impl Into<AnyEle
 
     render_app_layout(
         AppLayoutConfig {
+            border_color: BLUE,
+            title,
+            title_bg: YELLOW,
+            title_color: CRUST,
             menu: " [R]efresh  [C]reate  [Q]uit".to_string(),
+            menu_bg: SURFACE1,
+            menu_color: SUBTEXT1,
             status: props.status.clone(),
-            ..Default::default()
         },
         content,
         &mut hooks,

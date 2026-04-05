@@ -104,7 +104,7 @@ impl StatusMessage {
                     format!("Field 1/6 — Type: {} | Space: cycle types", form_type)
                 }
                 FormFieldContext::Name => {
-                    "Field 2/6 — Name: e.g. app.example.com".to_string()
+                    "Field 2/6 — Name: e.g. www (subdomain)".to_string()
                 }
                 FormFieldContext::Content => {
                     "Field 3/6 — IP Address | Space: open selector | Type: enter IP".to_string()

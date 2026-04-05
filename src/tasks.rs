@@ -6,6 +6,16 @@ use crate::state::{AppState, AppView};
 use crate::utils::{extract_unique_ips, format_records};
 
 pub async fn fetch_all(state: &AppState, rd: &mut State<String>, st: &mut State<String>) {
+    // Fetch zone name for display in title
+    match state.client.get_zone_name().await {
+        Ok(name) => {
+            *state.zone_name.lock().unwrap() = name;
+        }
+        Err(_) => {
+            // Keep default (zone ID) if fetch fails
+        }
+    }
+
     match state.client.list_dns_records().await {
         Ok(f) => {
             rd.set(format_records(&f));
@@ -20,6 +30,7 @@ pub async fn fetch_all(state: &AppState, rd: &mut State<String>, st: &mut State<
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn fill_form_from_record(
     rec: &DnsRecord,
     form_type: &mut State<String>,

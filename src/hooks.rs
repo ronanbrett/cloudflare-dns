@@ -26,6 +26,7 @@ pub struct AppCtx {
 
     // IP selector
     pub ip_sel_idx: State<usize>,
+    pub ip_sel_open: State<bool>,
 
     // List selection
     pub list_sel_idx: State<usize>,
@@ -341,6 +342,7 @@ pub fn use_app_events(hooks: &mut Hooks<'_, '_>, ctx: &AppCtx) {
         let mut fp = ctx.form_proxied;
         let mut is = ctx.is_submitting;
         let mut isi = ctx.ip_sel_idx;
+        let mut ip_sel_open = ctx.ip_sel_open;
         let eid = ctx.editing_record_id;
         let mut st = ctx.status;
         let rd = ctx.records_display;
@@ -354,6 +356,11 @@ pub fn use_app_events(hooks: &mut Hooks<'_, '_>, ctx: &AppCtx) {
                 }
                 match code {
                     KeyCode::Esc => {
+                        // If IpSelect just handled Esc, don't double-process it.
+                        if ip_sel_open.get() {
+                            ip_sel_open.set(false);
+                            return;
+                        }
                         view.set(AppView::List);
                         st.set("Cancelled".to_string());
                     }
@@ -418,6 +425,7 @@ pub fn use_app_events(hooks: &mut Hooks<'_, '_>, ctx: &AppCtx) {
                     }
                     KeyCode::Char(' ') if ff.get() == 2 => {
                         view.set(AppView::IpSelect);
+                        ip_sel_open.set(true);
                         isi.set(0);
                     }
                     _ => {}

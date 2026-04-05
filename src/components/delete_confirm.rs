@@ -7,6 +7,7 @@ pub struct DeleteConfirmProps {
     pub rec_name: String,
     pub deleting: bool,
     pub status: String,
+    pub zone_name: String,
 }
 
 #[component]
@@ -38,7 +39,7 @@ pub fn DeleteConfirm(
     render_app_layout(
         AppLayoutConfig {
             border_color: RED,
-            title: " ☁ Cloudflare DNS ".to_string(),
+            title: format!(" ☁ Cloudflare DNS — {} ", props.zone_name),
             title_bg: SURFACE1,
             title_color: SUBTEXT1,
             menu: " ⚠ DELETE RECORD ".to_string(),

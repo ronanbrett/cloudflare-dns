@@ -7,7 +7,7 @@ pub fn FormField(props: &FormFieldProps, _hooks: Hooks) -> impl Into<AnyElement<
     let Some(mut value) = props.value else {
         // Graceful fallback: render a disabled-looking field
         return element! {
-            View(flex_direction: FlexDirection::Row, margin_bottom: 1) {
+            View(flex_direction: FlexDirection::Row, margin_bottom: 1, align_items: AlignItems::Center) {
                 View(width: 12) { Text(content: format!("{}: ", props.label), color: TEAL) }
                 View(
                     border_style: BorderStyle::None,
@@ -22,8 +22,10 @@ pub fn FormField(props: &FormFieldProps, _hooks: Hooks) -> impl Into<AnyElement<
     };
 
     element! {
-        View(flex_direction: FlexDirection::Row, margin_bottom: 1) {
-            View(width: 12) { Text(content: format!("{}: ", props.label), color: TEAL) }
+        View(flex_direction: FlexDirection::Row, margin_bottom: 1, align_items: AlignItems::Center) {
+            View(width: 12) {
+                Text(content: format!("{}: ", props.label), color: TEAL)
+            }
             View(
                 border_style: if props.has_focus { BorderStyle::Round } else { BorderStyle::None },
                 border_color: BLUE,
@@ -36,6 +38,9 @@ pub fn FormField(props: &FormFieldProps, _hooks: Hooks) -> impl Into<AnyElement<
                     value: value.to_string(),
                     on_change: move |new_value| value.set(new_value),
                 )
+            }
+            View(margin_left: 1) {
+                Text(content: props.suffix.clone(), color: OVERLAY1)
             }
         }
     }

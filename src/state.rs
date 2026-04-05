@@ -5,6 +5,7 @@ use crate::cloudflare::{CloudflareClient, DnsRecord};
 
 pub struct AppState {
     pub client: Arc<CloudflareClient>,
+    pub zone_name: Mutex<String>,
     pub records: Mutex<Vec<DnsRecord>>,
     pub existing_ips: Mutex<Vec<String>>,
 }
@@ -12,7 +13,8 @@ pub struct AppState {
 impl AppState {
     pub fn new(api_token: String, zone_id: String) -> Self {
         Self {
-            client: Arc::new(CloudflareClient::new(api_token, zone_id)),
+            client: Arc::new(CloudflareClient::new(api_token, zone_id.clone())),
+            zone_name: Mutex::new(zone_id),
             records: Mutex::new(Vec::new()),
             existing_ips: Mutex::new(Vec::new()),
         }
@@ -37,6 +39,7 @@ pub struct FormFieldProps {
     pub label: String,
     pub value: Option<State<String>>,
     pub has_focus: bool,
+    pub suffix: String,
 }
 
 #[derive(Default, Props)]

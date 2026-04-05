@@ -41,6 +41,12 @@ struct DnsRecordResponse {
     pub comment: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct ZoneResponse {
+    pub id: String,
+    pub name: String,
+}
+
 struct Inner {
     client: Client,
     api_token: String,
@@ -65,6 +71,34 @@ impl CloudflareClient {
                 base_url: "https://api.cloudflare.com/client/v4".to_string(),
             }),
         }
+    }
+
+    pub async fn get_zone_name(&self) -> Result<String> {
+        let inner = self.inner.clone();
+        smol::unblock(move || {
+            let url = format!("{}/zones/{}", inner.base_url, inner.zone_id);
+            let response = inner
+                .client
+                .get(&url)
+                .header("Authorization", format!("Bearer {}", inner.api_token))
+                .header("Content-Type", "application/json")
+                .send()
+                .context("Failed to send request to Cloudflare API")?;
+
+            if !response.status().is_success() {
+                return Ok(inner.zone_id.clone());
+            }
+
+            let api_response: ApiResponse<ZoneResponse> =
+                response.json().context("Failed to parse API response")?;
+
+            if let Some(zone) = api_response.result {
+                Ok(zone.name)
+            } else {
+                Ok(inner.zone_id.clone())
+            }
+        })
+        .await
     }
 
     pub async fn list_dns_records(&self) -> Result<Vec<DnsRecord>> {
