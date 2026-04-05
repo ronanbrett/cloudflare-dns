@@ -1,7 +1,8 @@
+/// Formatting utilities for DNS records and UI display.
 use std::collections::BTreeSet;
 use std::fmt::Write;
 
-use crate::cloudflare::DnsRecord;
+use crate::api::DnsRecord;
 
 /// Extract unique IP addresses from DNS records, filtering to only A/AAAA types.
 pub fn extract_unique_ips(records: &[DnsRecord]) -> Vec<String> {
@@ -17,11 +18,10 @@ pub fn extract_unique_ips(records: &[DnsRecord]) -> Vec<String> {
 /// Strip the domain suffix from a DNS record name.
 /// E.g., "pihole.robrett.com" with suffix ".robrett.com" -> "pihole"
 pub fn strip_domain_suffix(name: &str, domain_suffix: &str) -> String {
-    name.strip_suffix(domain_suffix)
-        .unwrap_or(name)
-        .to_string()
+    name.strip_suffix(domain_suffix).unwrap_or(name).to_string()
 }
 
+/// Format DNS records for display in a table format.
 pub fn format_records(records: &[DnsRecord]) -> String {
     if records.is_empty() {
         return "No DNS records found".to_string();
@@ -46,6 +46,7 @@ pub fn format_records(records: &[DnsRecord]) -> String {
     t
 }
 
+/// Format a list of IPs for the selector UI with selection indicators.
 pub fn format_selector(ips: &[String], selected_idx: usize) -> String {
     let mut s = String::new();
     for (i, ip) in ips.iter().enumerate() {
@@ -261,18 +262,12 @@ mod tests {
 
     #[test]
     fn test_strip_domain_suffix_exact_match() {
-        assert_eq!(
-            strip_domain_suffix("example.com", "example.com"),
-            ""
-        );
+        assert_eq!(strip_domain_suffix("example.com", "example.com"), "");
     }
 
     #[test]
     fn test_strip_domain_suffix_empty_suffix() {
-        assert_eq!(
-            strip_domain_suffix("example.com", ""),
-            "example.com"
-        );
+        assert_eq!(strip_domain_suffix("example.com", ""), "example.com");
     }
 
     #[test]

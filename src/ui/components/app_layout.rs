@@ -1,7 +1,8 @@
-use crate::colors::*;
-use crate::components::status_bar::StatusBar;
+use crate::ui::colors::*;
+use crate::ui::components::status_bar::StatusBar;
 use iocraft::prelude::*;
 
+#[allow(dead_code)]
 pub struct AppLayoutConfig {
     pub border_color: Color,
     pub title: String,

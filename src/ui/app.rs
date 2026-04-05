@@ -1,14 +1,18 @@
+/// Main application component and entry point.
+///
+/// This module defines the root App component and the run_app function
+/// that initializes the TUI.
 use anyhow::Result;
 use iocraft::prelude::*;
 use std::sync::Arc;
 
-use crate::components::create_form::CreateForm;
-use crate::components::delete_confirm::DeleteConfirm;
-use crate::components::ip_selector::IpSelector;
-use crate::components::record_list::RecordList;
-use crate::hooks::*;
-use crate::state::{AppProps, AppState, AppView};
-use crate::status::{generate_contextual_status, StatusMessage};
+use crate::ui::components::create_form::CreateForm;
+use crate::ui::components::delete_confirm::DeleteConfirm;
+use crate::ui::components::ip_selector::IpSelector;
+use crate::ui::components::record_list::RecordList;
+use crate::ui::hooks::*;
+use crate::ui::state::{AppProps, AppState, AppView};
+use crate::ui::status::{StatusMessage, generate_contextual_status};
 use crate::utils::format_selector;
 
 // ─── App ────────────────────────────────────────────────────────────────────
@@ -86,10 +90,7 @@ pub fn App(props: &AppProps, mut hooks: Hooks) -> impl Into<AnyElement<'static>>
 
     let lsi = list_sel_idx.get();
     let rec_name: String = if lsi < records.len() {
-        format!(
-            "{} ({})",
-            records[lsi].name, records[lsi].record_type
-        )
+        format!("{} ({})", records[lsi].name, records[lsi].record_type)
     } else {
         "Unknown".to_string()
     };
@@ -172,6 +173,7 @@ pub fn App(props: &AppProps, mut hooks: Hooks) -> impl Into<AnyElement<'static>>
     }
 }
 
+/// Run the TUI application.
 pub fn run_app(api_token: String, zone_id: String) -> Result<()> {
     let state = Arc::new(AppState::new(api_token, zone_id));
     smol::block_on(element!(App(state: state.clone())).fullscreen())?;

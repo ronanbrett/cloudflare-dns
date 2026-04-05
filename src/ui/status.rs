@@ -1,4 +1,7 @@
-use crate::state::AppView;
+#![allow(dead_code)]
+
+/// Status message types and rendering.
+use crate::ui::state::AppView;
 
 /// Represents the type of status message
 #[derive(Debug, Clone, PartialEq)]
@@ -103,15 +106,11 @@ impl StatusMessage {
                 FormFieldContext::Type => {
                     format!("Field 1/6 — Type: {} | Space: cycle types", form_type)
                 }
-                FormFieldContext::Name => {
-                    "Field 2/6 — Name: e.g. www (subdomain)".to_string()
-                }
+                FormFieldContext::Name => "Field 2/6 — Name: e.g. www (subdomain)".to_string(),
                 FormFieldContext::Content => {
                     "Field 3/6 — IP Address | Space: open selector | Type: enter IP".to_string()
                 }
-                FormFieldContext::Ttl => {
-                    "Field 4/6 — TTL: seconds (1 = auto)".to_string()
-                }
+                FormFieldContext::Ttl => "Field 4/6 — TTL: seconds (1 = auto)".to_string(),
                 FormFieldContext::Proxied => {
                     let proxied_status = if form_proxied == "true" {
                         "Orange cloud ON"
@@ -155,12 +154,8 @@ pub fn generate_contextual_status(
     selected_record_name: Option<&str>,
 ) -> StatusMessage {
     match view {
-        AppView::Delete => {
-            StatusMessage::ViewHelp(ViewHelpContext::DeleteConfirmation)
-        }
-        AppView::IpSelect => {
-            StatusMessage::ViewHelp(ViewHelpContext::IpSelector)
-        }
+        AppView::Delete => StatusMessage::ViewHelp(ViewHelpContext::DeleteConfirmation),
+        AppView::IpSelect => StatusMessage::ViewHelp(ViewHelpContext::IpSelector),
         AppView::Create | AppView::Edit => {
             let context = match form_focus {
                 0 => FormFieldContext::Type,
@@ -222,8 +217,7 @@ mod tests {
 
     #[test]
     fn test_status_type_contextual_view_help() {
-        let status =
-            StatusMessage::ViewHelp(ViewHelpContext::DeleteConfirmation);
+        let status = StatusMessage::ViewHelp(ViewHelpContext::DeleteConfirmation);
         assert_eq!(status.status_type(), StatusType::Contextual);
     }
 
@@ -330,10 +324,7 @@ mod tests {
     #[test]
     fn test_render_delete_confirmation_help() {
         let status = StatusMessage::ViewHelp(ViewHelpContext::DeleteConfirmation);
-        assert_eq!(
-            status.render(),
-            "Enter: confirm deletion | Esc: cancel"
-        );
+        assert_eq!(status.render(), "Enter: confirm deletion | Esc: cancel");
     }
 
     #[test]
@@ -353,10 +344,7 @@ mod tests {
             form_proxied: "false".to_string(),
             is_editing: false,
         };
-        assert_eq!(
-            status.render(),
-            "Field 1/6 — Type: A | Space: cycle types"
-        );
+        assert_eq!(status.render(), "Field 1/6 — Type: A | Space: cycle types");
     }
 
     #[test]
@@ -367,10 +355,7 @@ mod tests {
             form_proxied: "false".to_string(),
             is_editing: false,
         };
-        assert_eq!(
-            status.render(),
-            "Field 2/6 — Name: e.g. www (subdomain)"
-        );
+        assert_eq!(status.render(), "Field 2/6 — Name: e.g. www (subdomain)");
     }
 
     #[test]
@@ -406,10 +391,7 @@ mod tests {
             form_proxied: "true".to_string(),
             is_editing: false,
         };
-        assert_eq!(
-            status.render(),
-            "Field 5/6 — Proxied: Orange cloud ON"
-        );
+        assert_eq!(status.render(), "Field 5/6 — Proxied: Orange cloud ON");
     }
 
     #[test]
@@ -420,10 +402,7 @@ mod tests {
             form_proxied: "false".to_string(),
             is_editing: false,
         };
-        assert_eq!(
-            status.render(),
-            "Field 5/6 — Proxied: Grey cloud OFF"
-        );
+        assert_eq!(status.render(), "Field 5/6 — Proxied: Grey cloud OFF");
     }
 
     #[test]
@@ -434,10 +413,7 @@ mod tests {
             form_proxied: "false".to_string(),
             is_editing: false,
         };
-        assert_eq!(
-            status.render(),
-            "Field 6/6 — Press Enter to Create record"
-        );
+        assert_eq!(status.render(), "Field 6/6 — Press Enter to Create record");
     }
 
     #[test]
@@ -448,10 +424,7 @@ mod tests {
             form_proxied: "false".to_string(),
             is_editing: true,
         };
-        assert_eq!(
-            status.render(),
-            "Field 6/6 — Press Enter to Save record"
-        );
+        assert_eq!(status.render(), "Field 6/6 — Press Enter to Save record");
     }
 
     #[test]
@@ -614,16 +587,7 @@ mod tests {
 
     #[test]
     fn test_generate_contextual_status_list_view_empty() {
-        let result = generate_contextual_status(
-            &AppView::List,
-            0,
-            "A",
-            "false",
-            false,
-            0,
-            0,
-            None,
-        );
+        let result = generate_contextual_status(&AppView::List, 0, "A", "false", false, 0, 0, None);
         assert!(matches!(result, StatusMessage::EmptyListHelp));
     }
 

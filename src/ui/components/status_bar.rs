@@ -1,5 +1,5 @@
-use crate::colors::{SURFACE0, YELLOW};
-use crate::state::StatusBarProps;
+use crate::ui::colors::{SURFACE0, YELLOW};
+use crate::ui::state::StatusBarProps;
 use iocraft::prelude::*;
 
 #[component]

@@ -1,6 +1,9 @@
-// Catppuccin Mocha palette
-// https://github.com/catppuccin/catppuccin
+#![allow(dead_code)]
 
+/// Catppuccin Mocha color theme.
+///
+/// Provides a consistent color palette across all UI components.
+/// https://github.com/catppuccin/catppuccin
 use iocraft::prelude::*;
 
 #[inline]
@@ -8,18 +11,24 @@ const fn rgb(r: u8, g: u8, b: u8) -> Color {
     Color::Rgb { r, g, b }
 }
 
+// Background colors
 pub const CRUST: Color = rgb(0x11, 0x11, 0x1b);
 pub const MANTEL: Color = rgb(0x18, 0x18, 0x25);
 pub const BASE: Color = rgb(0x1e, 0x1e, 0x2e);
 pub const SURFACE0: Color = rgb(0x31, 0x32, 0x44);
 pub const SURFACE1: Color = rgb(0x45, 0x47, 0x5a);
 pub const SURFACE2: Color = rgb(0x58, 0x5b, 0x70);
+
+// Overlay colors
 pub const OVERLAY0: Color = rgb(0x6c, 0x70, 0x86);
 pub const OVERLAY1: Color = rgb(0x7f, 0x84, 0x9c);
+
+// Text colors
 pub const SUBTEXT0: Color = rgb(0xa6, 0xad, 0xc8);
 pub const SUBTEXT1: Color = rgb(0xba, 0xc2, 0xde);
 pub const TEXT: Color = rgb(0xcd, 0xd6, 0xf4);
 
+// Accent colors
 pub const BLUE: Color = rgb(0x89, 0xb4, 0xfa);
 pub const SAPPHIRE: Color = rgb(0x74, 0xc7, 0xec);
 pub const SKY: Color = rgb(0x89, 0xdc, 0xeb);

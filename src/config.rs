@@ -18,6 +18,7 @@ impl Config {
     pub fn load() -> Result<Self> {
         // Try config file first
         if let Ok(config) = Self::load_from_file() {
+            config.validate()?;
             return Ok(config);
         }
 
@@ -25,7 +26,36 @@ impl Config {
         dotenvy::dotenv().ok();
 
         // Fall back to environment variables
-        Self::load_from_env()
+        let config = Self::load_from_env()?;
+        config.validate()?;
+        Ok(config)
+    }
+
+    /// Validate configuration values.
+    fn validate(&self) -> Result<()> {
+        if self.cloudflare_api_token.is_empty() {
+            anyhow::bail!("Cloudflare API token cannot be empty");
+        }
+
+        if self.cloudflare_zone_id.is_empty() {
+            anyhow::bail!("Cloudflare zone ID cannot be empty");
+        }
+
+        // Basic format validation - zone IDs are typically 32 character hex strings
+        if !self
+            .cloudflare_zone_id
+            .chars()
+            .all(|c| c.is_ascii_hexdigit() || c == '-')
+        {
+            anyhow::bail!("Cloudflare zone ID appears to be in an invalid format");
+        }
+
+        // API tokens should be reasonably long
+        if self.cloudflare_api_token.len() < 20 {
+            anyhow::bail!("Cloudflare API token appears to be in an invalid format (too short)");
+        }
+
+        Ok(())
     }
 
     fn load_from_file() -> Result<Self> {

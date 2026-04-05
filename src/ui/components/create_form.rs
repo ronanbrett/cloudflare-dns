@@ -1,6 +1,6 @@
-use crate::colors::*;
-use crate::components::app_layout::{AppLayoutConfig, render_app_layout};
-use crate::components::form_field::FormField;
+use crate::ui::colors::*;
+use crate::ui::components::app_layout::{AppLayoutConfig, render_app_layout};
+use crate::ui::components::form_field::FormField;
 use iocraft::prelude::*;
 
 #[derive(Props)]

@@ -1,14 +1,24 @@
+/// Application event handling.
+///
+/// This module manages all terminal event handling for the application,
+/// including keyboard input for different views and state transitions.
 use iocraft::prelude::*;
 use std::sync::Arc;
 
-use crate::constants::RECORD_TYPES;
-use crate::state::{AppState, AppView};
-use crate::status::StatusMessage;
-use crate::tasks::*;
+use crate::tasks::delete_task::DeleteParams;
+use crate::tasks::delete_task::delete_task;
+use crate::tasks::fetch_task::fetch_all;
+use crate::tasks::fetch_task::refresh_task;
+use crate::tasks::submit_task::SubmitParams;
+use crate::tasks::submit_task::submit_task;
+use crate::ui::constants::RECORD_TYPES;
+use crate::ui::state::{AppState, AppView};
+use crate::ui::status::StatusMessage;
 
 /// Number of focusable items in the create/edit form.
 const FORM_FIELD_COUNT: usize = 6;
 
+/// Application context containing all state handles.
 #[derive(Clone)]
 pub struct AppCtx {
     pub view: State<AppView>,
@@ -41,6 +51,7 @@ pub struct AppCtx {
     pub state: Arc<AppState>,
 }
 
+/// Set up all application event listeners.
 pub fn use_app_events(hooks: &mut Hooks<'_, '_>, ctx: &AppCtx) {
     // ── Status auto-clear via one-shot timers ────────────────────────────
     hooks.use_future({
@@ -67,10 +78,11 @@ pub fn use_app_events(hooks: &mut Hooks<'_, '_>, ctx: &AppCtx) {
     // ── Fetch on mount ──────────────────────────────────────────────────
     hooks.use_future({
         let state = ctx.state.clone();
+        let client = state.client.clone();
         let mut rd = ctx.records_display;
         let mut st = ctx.status;
         async move {
-            fetch_all(&state, &mut rd, &mut st).await;
+            fetch_all(&client, &state, &mut rd, &mut st).await;
         }
     });
 
@@ -160,9 +172,10 @@ pub fn use_app_events(hooks: &mut Hooks<'_, '_>, ctx: &AppCtx) {
                         is_refreshing.set(true);
                         let (state, rd, mut st, mut is_refreshing) =
                             (state.clone(), rd, st, is_refreshing);
+                        let client = state.client.clone();
                         smol::spawn(async move {
                             st.set("Refreshing...".to_string());
-                            refresh_task(state.clone(), rd, st).await;
+                            refresh_task(&client, &state, rd, st).await;
                             is_refreshing.set(false);
                         })
                         .detach();
@@ -183,7 +196,8 @@ pub fn use_app_events(hooks: &mut Hooks<'_, '_>, ctx: &AppCtx) {
                             let edit_id = rec.id.clone().unwrap_or_default();
                             eid.set(edit_id.clone());
                             ff.set(0);
-                            let domain_suffix = format!(".{}", state.zone_name.lock().unwrap().clone());
+                            let domain_suffix =
+                                format!(".{}", state.zone_name.lock().unwrap().clone());
                             fill_form_from_record(
                                 rec,
                                 &mut ft,
@@ -248,21 +262,21 @@ pub fn use_app_events(hooks: &mut Hooks<'_, '_>, ctx: &AppCtx) {
                             return;
                         }
 
-                        let (state, record_id, record_name, record_type, view, mut is_del, st, rd) = (
-                            state.clone(),
-                            record_id.unwrap(),
+                        let (state, view, mut is_del, st, rd) =
+                            (state.clone(), view, is_del, st, rd);
+                        is_del.set(true);
+                        let params = DeleteParams {
+                            client: state.client.clone(),
+                            state: state.clone(),
+                            record_id: record_id.unwrap(),
                             record_name,
                             record_type,
                             view,
-                            is_del,
-                            st,
-                            rd,
-                        );
-                        is_del.set(true);
-                        smol::spawn(delete_task(
-                            state, record_id, record_name, record_type, view, is_del, st, rd,
-                        ))
-                        .detach();
+                            is_deleting: is_del,
+                            status: st,
+                            records_display: rd,
+                        };
+                        smol::spawn(delete_task(params)).detach();
                     }
                     _ => {}
                 }
@@ -407,10 +421,23 @@ pub fn use_app_events(hooks: &mut Hooks<'_, '_>, ctx: &AppCtx) {
                             fc,
                             is,
                         );
-                        smol::spawn(submit_task(
-                            state, eid_str, rt, nm, ct, ttl, px, rd, st, view, form_name, fc, is,
-                        ))
-                        .detach();
+                        let params = SubmitParams {
+                            client: state.client.clone(),
+                            state: state.clone(),
+                            record_id: eid_str,
+                            record_type: rt,
+                            name: nm,
+                            content: ct,
+                            ttl,
+                            proxied: px,
+                            records_display: rd,
+                            status: st,
+                            view,
+                            form_name,
+                            form_content: fc,
+                            is_submitting: is,
+                        };
+                        smol::spawn(submit_task(params)).detach();
                     }
                     KeyCode::Char(' ') if ff.get() == 0 => {
                         let c = ft.to_string();
@@ -435,4 +462,33 @@ pub fn use_app_events(hooks: &mut Hooks<'_, '_>, ctx: &AppCtx) {
             }
         }
     });
+}
+
+/// Fill form fields from an existing DNS record (for editing).
+#[allow(clippy::too_many_arguments)]
+pub fn fill_form_from_record(
+    rec: &crate::api::DnsRecord,
+    form_type: &mut State<String>,
+    form_name: &mut State<String>,
+    form_content: &mut State<String>,
+    form_ttl: &mut State<String>,
+    form_proxied: &mut State<String>,
+    editing_id: &mut State<String>,
+    domain_suffix: &str,
+) {
+    form_type.set(rec.record_type.clone());
+    // Strip the domain suffix from the name (e.g., "pihole.robrett.com" -> "pihole")
+    let short_name = crate::utils::strip_domain_suffix(&rec.name, domain_suffix);
+    form_name.set(short_name);
+    form_content.set(rec.content.clone());
+    form_ttl.set(rec.ttl.unwrap_or(1).to_string());
+    form_proxied.set(
+        if rec.proxied.unwrap_or(false) {
+            "true"
+        } else {
+            "false"
+        }
+        .to_string(),
+    );
+    editing_id.set(rec.id.clone().unwrap_or_default());
 }

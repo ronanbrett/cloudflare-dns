@@ -1,5 +1,5 @@
-use crate::colors::{BLUE, OVERLAY1, SURFACE0, TEAL};
-use crate::state::FormFieldProps;
+use crate::ui::colors::{BLUE, OVERLAY1, SURFACE0, TEAL};
+use crate::ui::state::FormFieldProps;
 use iocraft::prelude::*;
 
 #[component]
@@ -18,7 +18,7 @@ pub fn FormField(props: &FormFieldProps, _hooks: Hooks) -> impl Into<AnyElement<
                     Text(content: "(no value)", color: OVERLAY1)
                 }
             }
-        }
+        };
     };
 
     element! {

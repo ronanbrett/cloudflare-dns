@@ -1,7 +1,9 @@
-use cloudflaredns::cloudflare::DnsRecord;
-use cloudflaredns::status::{generate_contextual_status, StatusMessage, StatusType};
-use cloudflaredns::utils::{extract_unique_ips, format_records, format_selector, strip_domain_suffix};
-use cloudflaredns::state::AppView;
+use cloudflaredns::api::DnsRecord;
+use cloudflaredns::ui::state::AppView;
+use cloudflaredns::ui::status::{StatusMessage, StatusType, generate_contextual_status};
+use cloudflaredns::utils::{
+    extract_unique_ips, format_records, format_selector, strip_domain_suffix,
+};
 
 // ─── Realistic DNS record data flow ──────────────────────────────────────────
 
@@ -215,7 +217,10 @@ fn test_status_for_edit_form_all_fields() {
         generate_contextual_status(&AppView::Edit, 5, "A", "false", true, 5, 0, None),
     ];
 
-    let rendered: Vec<String> = field_statuses.iter().map(|s: &StatusMessage| s.render()).collect();
+    let rendered: Vec<String> = field_statuses
+        .iter()
+        .map(|s: &StatusMessage| s.render())
+        .collect();
 
     assert!(rendered[0].contains("Type: A"));
     assert!(rendered[0].contains("Field 1/6"));

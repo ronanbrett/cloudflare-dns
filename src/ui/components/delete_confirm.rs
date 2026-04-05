@@ -1,5 +1,5 @@
-use crate::colors::*;
-use crate::components::app_layout::{AppLayoutConfig, render_app_layout};
+use crate::ui::colors::*;
+use crate::ui::components::app_layout::{AppLayoutConfig, render_app_layout};
 use iocraft::prelude::*;
 
 #[derive(Default, Props)]
