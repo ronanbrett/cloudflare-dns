@@ -70,45 +70,55 @@ impl CloudflareClient {
     pub async fn list_dns_records(&self) -> Result<Vec<DnsRecord>> {
         let inner = self.inner.clone();
         smol::unblock(move || {
-            let url = format!("{}/zones/{}/dns_records", inner.base_url, inner.zone_id);
-            let response = inner
-                .client
-                .get(&url)
-                .header("Authorization", format!("Bearer {}", inner.api_token))
-                .header("Content-Type", "application/json")
-                .send()
-                .context("Failed to send request to Cloudflare API")?;
+            let mut all_records = Vec::new();
+            let mut page = 1;
+            let per_page = 100;
 
-            if !response.status().is_success() {
-                let status = response.status();
-                let body = response.text().unwrap_or_default();
-                return Err(anyhow::anyhow!(
-                    "API request failed with status {}: {}",
-                    status,
-                    body
-                ));
-            }
+            loop {
+                let url = format!(
+                    "{}/zones/{}/dns_records?page={}&per_page={}",
+                    inner.base_url, inner.zone_id, page, per_page
+                );
+                let response = inner
+                    .client
+                    .get(&url)
+                    .header("Authorization", format!("Bearer {}", inner.api_token))
+                    .header("Content-Type", "application/json")
+                    .send()
+                    .context("Failed to send request to Cloudflare API")?;
 
-            let api_response: ApiResponse<Vec<DnsRecordResponse>> =
-                response.json().context("Failed to parse API response")?;
+                if !response.status().is_success() {
+                    let status = response.status();
+                    let body = response.text().unwrap_or_default();
+                    return Err(anyhow::anyhow!(
+                        "API request failed with status {}: {}",
+                        status,
+                        body
+                    ));
+                }
 
-            if !api_response.success {
-                let errors: Vec<String> = api_response
-                    .errors
-                    .iter()
-                    .map(|e| format!("{} (code: {})", e.message, e.code))
-                    .collect();
-                return Err(anyhow::anyhow!(
-                    "Cloudflare API errors: {}",
-                    errors.join(", ")
-                ));
-            }
+                let api_response: ApiResponse<Vec<DnsRecordResponse>> =
+                    response.json().context("Failed to parse API response")?;
 
-            Ok(api_response
-                .result
-                .unwrap_or_default()
-                .into_iter()
-                .map(|r| DnsRecord {
+                if !api_response.success {
+                    let errors: Vec<String> = api_response
+                        .errors
+                        .iter()
+                        .map(|e| format!("{} (code: {})", e.message, e.code))
+                        .collect();
+                    return Err(anyhow::anyhow!(
+                        "Cloudflare API errors: {}",
+                        errors.join(", ")
+                    ));
+                }
+
+                let records = api_response.result.unwrap_or_default();
+                let fetched_count = records.len();
+                if fetched_count == 0 {
+                    break;
+                }
+
+                all_records.extend(records.into_iter().map(|r| DnsRecord {
                     id: Some(r.id),
                     record_type: r.record_type,
                     name: r.name,
@@ -116,8 +126,15 @@ impl CloudflareClient {
                     ttl: Some(r.ttl),
                     proxied: Some(r.proxied),
                     comment: r.comment,
-                })
-                .collect())
+                }));
+
+                if fetched_count < per_page {
+                    break;
+                }
+                page += 1;
+            }
+
+            Ok(all_records)
         })
         .await
     }
@@ -126,7 +143,10 @@ impl CloudflareClient {
         let inner = self.inner.clone();
         let record = record.clone();
         smol::unblock(move || {
-            let url = format!("{}/zones/{}/dns_records", inner.base_url, inner.zone_id);
+            let url = format!(
+                "{}/zones/{}/dns_records",
+                inner.base_url, inner.zone_id
+            );
             let response = inner
                 .client
                 .post(&url)
@@ -182,9 +202,14 @@ impl CloudflareClient {
         let inner = self.inner.clone();
         let record = record.clone();
         smol::unblock(move || {
-            let record_id = record.id.as_ref()
+            let record_id = record
+                .id
+                .as_ref()
                 .ok_or_else(|| anyhow::anyhow!("Cannot update: record has no ID"))?;
-            let url = format!("{}/zones/{}/dns_records/{}", inner.base_url, inner.zone_id, record_id);
+            let url = format!(
+                "{}/zones/{}/dns_records/{}",
+                inner.base_url, inner.zone_id, record_id
+            );
             let response = inner
                 .client
                 .put(&url)

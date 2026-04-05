@@ -2,19 +2,10 @@ use crate::colors::*;
 use crate::components::app_layout::{render_app_layout, AppLayoutConfig};
 use iocraft::prelude::*;
 
-#[derive(Props)]
+#[derive(Default, Props)]
 pub struct IpSelectorProps {
     pub sel_text: String,
     pub status: String,
-}
-
-impl Default for IpSelectorProps {
-    fn default() -> Self {
-        Self {
-            sel_text: String::new(),
-            status: String::new(),
-        }
-    }
 }
 
 #[component]

@@ -6,6 +6,9 @@ use crate::state::{AppState, AppView};
 use crate::status::StatusMessage;
 use crate::tasks::*;
 
+/// Number of focusable items in the create/edit form.
+const FORM_FIELD_COUNT: usize = 6;
+
 #[derive(Clone)]
 pub struct AppCtx {
     pub view: State<AppView>,
@@ -28,6 +31,9 @@ pub struct AppCtx {
     pub list_sel_idx: State<usize>,
     pub is_deleting: State<bool>,
 
+    // Refresh guard
+    pub is_refreshing: State<bool>,
+
     // Global
     pub records_display: State<String>,
     pub status: State<String>,
@@ -35,25 +41,23 @@ pub struct AppCtx {
 }
 
 pub fn use_app_events(hooks: &mut Hooks<'_, '_>, ctx: &AppCtx) {
+    // ── Status auto-clear via one-shot timers ────────────────────────────
     hooks.use_future({
-        let mut st = ctx.status.clone();
+        let mut st = ctx.status;
         async move {
             loop {
+                #[allow(clippy::cmp_owned)]
                 let val = st.to_string();
-                if val.is_empty() {
-                    smol::Timer::after(std::time::Duration::from_millis(500)).await;
+                if val.is_empty() || !StatusMessage::is_transient(&val) {
+                    smol::Timer::after(std::time::Duration::from_secs(5)).await;
                     continue;
                 }
 
-                let is_transient = StatusMessage::is_transient(&val);
-
-                if is_transient {
-                    smol::Timer::after(std::time::Duration::from_secs(3)).await;
-                    if st.to_string() == val {
-                        st.set("".to_string());
-                    }
-                } else {
-                    smol::Timer::after(std::time::Duration::from_millis(500)).await;
+                // Transient status — wait 3s then clear if unchanged
+                smol::Timer::after(std::time::Duration::from_secs(3)).await;
+                #[allow(clippy::cmp_owned)]
+                if st.to_string() == val {
+                    st.set("".to_string());
                 }
             }
         }
@@ -62,8 +66,8 @@ pub fn use_app_events(hooks: &mut Hooks<'_, '_>, ctx: &AppCtx) {
     // ── Fetch on mount ──────────────────────────────────────────────────
     hooks.use_future({
         let state = ctx.state.clone();
-        let mut rd = ctx.records_display.clone();
-        let mut st = ctx.status.clone();
+        let mut rd = ctx.records_display;
+        let mut st = ctx.status;
         async move {
             fetch_all(&state, &mut rd, &mut st).await;
         }
@@ -71,24 +75,24 @@ pub fn use_app_events(hooks: &mut Hooks<'_, '_>, ctx: &AppCtx) {
 
     // ── Global keys (Q / C) ─────────────────────────────────────────────
     hooks.use_terminal_events({
-        let mut should_exit = ctx.should_exit.clone();
-        let mut view = ctx.view.clone();
-        let mut ff = ctx.form_focus.clone();
-        let mut ft = ctx.form_type.clone();
-        let mut fn_ = ctx.form_name.clone();
-        let mut fc = ctx.form_content.clone();
-        let mut ftl = ctx.form_ttl.clone();
-        let mut fp = ctx.form_proxied.clone();
-        let mut eid = ctx.editing_record_id.clone();
+        let mut should_exit = ctx.should_exit;
+        let mut view = ctx.view;
+        let mut ff = ctx.form_focus;
+        let mut ft = ctx.form_type;
+        let mut form_name = ctx.form_name;
+        let mut form_content = ctx.form_content;
+        let mut ftl = ctx.form_ttl;
+        let mut fp = ctx.form_proxied;
+        let mut eid = ctx.editing_record_id;
         move |event| {
             if let TerminalEvent::Key(KeyEvent { code, kind, .. }) = event {
                 if kind == KeyEventKind::Release {
                     return;
                 }
-                if code == KeyCode::Char('q') || code == KeyCode::Char('Q') {
-                    if view.get() == AppView::List {
-                        should_exit.set(true);
-                    }
+                if (code == KeyCode::Char('q') || code == KeyCode::Char('Q'))
+                    && view.get() == AppView::List
+                {
+                    should_exit.set(true);
                 }
                 if (code == KeyCode::Char('c') || code == KeyCode::Char('C'))
                     && view.get() == AppView::List
@@ -97,8 +101,8 @@ pub fn use_app_events(hooks: &mut Hooks<'_, '_>, ctx: &AppCtx) {
                     eid.set("".to_string());
                     ff.set(0);
                     ft.set("A".to_string());
-                    fn_.set("".to_string());
-                    fc.set("".to_string());
+                    form_name.set("".to_string());
+                    form_content.set("".to_string());
                     ftl.set("1".to_string());
                     fp.set("false".to_string());
                 }
@@ -109,17 +113,18 @@ pub fn use_app_events(hooks: &mut Hooks<'_, '_>, ctx: &AppCtx) {
     // ── List keys (↑↓ R D E) ────────────────────────────────────────────
     hooks.use_terminal_events({
         let state = ctx.state.clone();
-        let mut lsi = ctx.list_sel_idx.clone();
-        let mut view = ctx.view.clone();
-        let mut eid = ctx.editing_record_id.clone();
-        let mut ft = ctx.form_type.clone();
-        let mut fn_ = ctx.form_name.clone();
-        let mut fc = ctx.form_content.clone();
-        let mut ftl = ctx.form_ttl.clone();
-        let mut fp = ctx.form_proxied.clone();
-        let mut ff = ctx.form_focus.clone();
-        let rd = ctx.records_display.clone();
-        let mut st = ctx.status.clone();
+        let mut lsi = ctx.list_sel_idx;
+        let mut view = ctx.view;
+        let mut eid = ctx.editing_record_id;
+        let mut ft = ctx.form_type;
+        let mut form_name = ctx.form_name;
+        let mut form_content = ctx.form_content;
+        let mut ftl = ctx.form_ttl;
+        let mut fp = ctx.form_proxied;
+        let mut ff = ctx.form_focus;
+        let rd = ctx.records_display;
+        let mut st = ctx.status;
+        let mut is_refreshing = ctx.is_refreshing;
         move |event| {
             if view.get() != AppView::List {
                 return;
@@ -130,33 +135,47 @@ pub fn use_app_events(hooks: &mut Hooks<'_, '_>, ctx: &AppCtx) {
                 }
                 match code {
                     KeyCode::Up => {
-                        let recs = state.records.lock().unwrap().clone();
-                        if !recs.is_empty() {
+                        let recs = state.records.lock().unwrap();
+                        let len = recs.len();
+                        if len > 0 {
                             let idx = lsi.get();
-                            lsi.set(if idx > 0 { idx - 1 } else { recs.len() - 1 });
+                            drop(recs);
+                            lsi.set(if idx > 0 { idx - 1 } else { len - 1 });
                         }
                     }
                     KeyCode::Down => {
-                        let recs = state.records.lock().unwrap().clone();
-                        if !recs.is_empty() {
+                        let recs = state.records.lock().unwrap();
+                        let len = recs.len();
+                        if len > 0 {
                             let idx = lsi.get();
-                            lsi.set(if idx < recs.len() - 1 { idx + 1 } else { 0 });
+                            drop(recs);
+                            lsi.set(if idx < len - 1 { idx + 1 } else { 0 });
                         }
                     }
                     KeyCode::Char('r') | KeyCode::Char('R') => {
-                        let (state, rd, mut st) = (state.clone(), rd.clone(), st.clone());
-                        st.set("Refreshing...".to_string());
-                        smol::spawn(refresh_task(state, rd, st)).detach();
+                        if is_refreshing.get() {
+                            return;
+                        }
+                        is_refreshing.set(true);
+                        let (state, rd, mut st, mut is_refreshing) =
+                            (state.clone(), rd, st, is_refreshing);
+                        smol::spawn(async move {
+                            st.set("Refreshing...".to_string());
+                            refresh_task(state.clone(), rd, st).await;
+                            is_refreshing.set(false);
+                        })
+                        .detach();
                     }
                     KeyCode::Char('d') | KeyCode::Char('D') => {
-                        let recs = state.records.lock().unwrap().clone();
-                        if !recs.is_empty() {
+                        let recs = state.records.lock().unwrap();
+                        let idx = lsi.get();
+                        if idx < recs.len() {
                             view.set(AppView::Delete);
                             st.set("Enter: confirm | Esc: cancel".to_string());
                         }
                     }
                     KeyCode::Char('e') | KeyCode::Char('E') => {
-                        let recs = state.records.lock().unwrap().clone();
+                        let recs = state.records.lock().unwrap();
                         let idx = lsi.get();
                         if idx < recs.len() {
                             let rec = &recs[idx];
@@ -164,7 +183,13 @@ pub fn use_app_events(hooks: &mut Hooks<'_, '_>, ctx: &AppCtx) {
                             eid.set(edit_id.clone());
                             ff.set(0);
                             fill_form_from_record(
-                                rec, &mut ft, &mut fn_, &mut fc, &mut ftl, &mut fp, &mut eid,
+                                rec,
+                                &mut ft,
+                                &mut form_name,
+                                &mut form_content,
+                                &mut ftl,
+                                &mut fp,
+                                &mut eid,
                             );
                             view.set(AppView::Edit);
                             st.set(format!(
@@ -182,11 +207,11 @@ pub fn use_app_events(hooks: &mut Hooks<'_, '_>, ctx: &AppCtx) {
     // ── Delete-confirm keys ─────────────────────────────────────────────
     hooks.use_terminal_events({
         let state = ctx.state.clone();
-        let mut view = ctx.view.clone();
-        let lsi = ctx.list_sel_idx.clone();
-        let mut st = ctx.status.clone();
-        let rd = ctx.records_display.clone();
-        let is_del = ctx.is_deleting.clone();
+        let mut view = ctx.view;
+        let lsi = ctx.list_sel_idx;
+        let mut st = ctx.status;
+        let rd = ctx.records_display;
+        let is_del = ctx.is_deleting;
         move |event| {
             if view.get() != AppView::Delete {
                 return;
@@ -201,16 +226,40 @@ pub fn use_app_events(hooks: &mut Hooks<'_, '_>, ctx: &AppCtx) {
                         st.set("Cancelled".to_string());
                     }
                     KeyCode::Enter if !is_del.get() => {
-                        let (state, lsi, view, mut is_del, st, rd) = (
+                        let recs = state.records.lock().unwrap();
+                        let idx = lsi.get();
+                        if idx >= recs.len() {
+                            st.set("Record no longer exists".to_string());
+                            view.set(AppView::List);
+                            return;
+                        }
+                        let rec = &recs[idx];
+                        let record_id = rec.id.clone();
+                        let record_name = rec.name.clone();
+                        let record_type = rec.record_type.clone();
+                        drop(recs);
+
+                        if record_id.is_none() {
+                            st.set("No record ID".to_string());
+                            view.set(AppView::List);
+                            return;
+                        }
+
+                        let (state, record_id, record_name, record_type, view, mut is_del, st, rd) = (
                             state.clone(),
-                            lsi.clone(),
-                            view.clone(),
-                            is_del.clone(),
-                            st.clone(),
-                            rd.clone(),
+                            record_id.unwrap(),
+                            record_name,
+                            record_type,
+                            view,
+                            is_del,
+                            st,
+                            rd,
                         );
                         is_del.set(true);
-                        smol::spawn(delete_task(state, lsi.get(), view, is_del, st, rd)).detach();
+                        smol::spawn(delete_task(
+                            state, record_id, record_name, record_type, view, is_del, st, rd,
+                        ))
+                        .detach();
                     }
                     _ => {}
                 }
@@ -221,12 +270,12 @@ pub fn use_app_events(hooks: &mut Hooks<'_, '_>, ctx: &AppCtx) {
     // ── IP-selector keys ────────────────────────────────────────────────
     hooks.use_terminal_events({
         let state = ctx.state.clone();
-        let mut view = ctx.view.clone();
-        let mut isi = ctx.ip_sel_idx.clone();
-        let mut ff = ctx.form_focus.clone();
-        let mut fc = ctx.form_content.clone();
-        let mut st = ctx.status.clone();
-        let eid = ctx.editing_record_id.clone();
+        let mut view = ctx.view;
+        let mut isi = ctx.ip_sel_idx;
+        let mut ff = ctx.form_focus;
+        let mut fc = ctx.form_content;
+        let mut st = ctx.status;
+        let eid = ctx.editing_record_id;
         move |event| {
             if view.get() != AppView::IpSelect {
                 return;
@@ -283,18 +332,18 @@ pub fn use_app_events(hooks: &mut Hooks<'_, '_>, ctx: &AppCtx) {
     // ── Create-form keys ────────────────────────────────────────────────
     hooks.use_terminal_events({
         let state = ctx.state.clone();
-        let mut view = ctx.view.clone();
-        let mut ff = ctx.form_focus.clone();
-        let mut ft = ctx.form_type.clone();
-        let fn_ = ctx.form_name.clone();
-        let mut fc = ctx.form_content.clone();
-        let ftl = ctx.form_ttl.clone();
-        let mut fp = ctx.form_proxied.clone();
-        let mut is = ctx.is_submitting.clone();
-        let mut isi = ctx.ip_sel_idx.clone();
-        let eid = ctx.editing_record_id.clone();
-        let mut st = ctx.status.clone();
-        let rd = ctx.records_display.clone();
+        let mut view = ctx.view;
+        let mut ff = ctx.form_focus;
+        let mut ft = ctx.form_type;
+        let form_name = ctx.form_name;
+        let fc = ctx.form_content;
+        let ftl = ctx.form_ttl;
+        let mut fp = ctx.form_proxied;
+        let mut is = ctx.is_submitting;
+        let mut isi = ctx.ip_sel_idx;
+        let eid = ctx.editing_record_id;
+        let mut st = ctx.status;
+        let rd = ctx.records_display;
         move |event| {
             if !matches!(view.get(), AppView::Create | AppView::Edit) {
                 return;
@@ -308,29 +357,49 @@ pub fn use_app_events(hooks: &mut Hooks<'_, '_>, ctx: &AppCtx) {
                         view.set(AppView::List);
                         st.set("Cancelled".to_string());
                     }
-                    KeyCode::Up => ff.set((ff.get() + 5) % 6),
-                    KeyCode::Down => ff.set((ff.get() + 1) % 6),
-                    KeyCode::Tab => ff.set((ff.get() + 1) % 6),
-                    KeyCode::BackTab => ff.set((ff.get() + 5) % 6),
+                    KeyCode::Up => {
+                        ff.set((ff.get() + FORM_FIELD_COUNT as i32 - 1) % FORM_FIELD_COUNT as i32)
+                    }
+                    KeyCode::Down => ff.set((ff.get() + 1) % FORM_FIELD_COUNT as i32),
+                    KeyCode::Tab => ff.set((ff.get() + 1) % FORM_FIELD_COUNT as i32),
+                    KeyCode::BackTab => {
+                        ff.set((ff.get() + FORM_FIELD_COUNT as i32 - 1) % FORM_FIELD_COUNT as i32)
+                    }
                     KeyCode::Enter if ff.get() == 5 && !is.get() => {
+                        // Client-side input validation before submit
+                        let nm = form_name.to_string();
+                        let ct = fc.to_string();
+                        let ttl_str = ftl.to_string();
+                        if nm.is_empty() {
+                            st.set("Name cannot be empty".to_string());
+                            return;
+                        }
+                        if ct.is_empty() {
+                            st.set("Content cannot be empty".to_string());
+                            return;
+                        }
+                        let ttl: i64 = match ttl_str.parse() {
+                            Ok(v) => v,
+                            Err(_) => {
+                                st.set(format!("Invalid TTL '{}': must be a number", ttl_str));
+                                return;
+                            }
+                        };
+                        let px = fp.to_string().to_lowercase() == "true";
                         is.set(true);
                         let eid_str = eid.to_string();
-                        let (state, rt, nm, ct, ttl, px, rd, st, view, fn_, fc, is) = (
+                        let (state, rt, rd, st, view, form_name, fc, is) = (
                             state.clone(),
                             ft.to_string(),
-                            fn_.to_string(),
-                            fc.to_string(),
-                            ftl.to_string(),
-                            fp.to_string(),
-                            rd.clone(),
-                            st.clone(),
-                            view.clone(),
-                            fn_.clone(),
-                            fc.clone(),
-                            is.clone(),
+                            rd,
+                            st,
+                            view,
+                            form_name,
+                            fc,
+                            is,
                         );
                         smol::spawn(submit_task(
-                            state, eid_str, rt, nm, ct, ttl, px, rd, st, view, fn_, fc, is,
+                            state, eid_str, rt, nm, ct, ttl, px, rd, st, view, form_name, fc, is,
                         ))
                         .detach();
                     }

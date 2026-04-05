@@ -1,4 +1,18 @@
+use std::collections::BTreeSet;
+use std::fmt::Write;
+
 use crate::cloudflare::DnsRecord;
+
+/// Extract unique IP addresses from DNS records, filtering to only A/AAAA types.
+pub fn extract_unique_ips(records: &[DnsRecord]) -> Vec<String> {
+    let mut ips = BTreeSet::new();
+    for r in records {
+        if (r.record_type == "A" || r.record_type == "AAAA") && !ips.contains(&r.content) {
+            ips.insert(r.content.clone());
+        }
+    }
+    ips.into_iter().collect()
+}
 
 pub fn format_records(records: &[DnsRecord]) -> String {
     if records.is_empty() {
@@ -6,8 +20,9 @@ pub fn format_records(records: &[DnsRecord]) -> String {
     }
     let mut t = format!("{} DNS Records\n\n", records.len());
     for r in records {
-        t.push_str(&format!(
-            "{:<6} | {:<30} | {:<20} | TTL: {:<6} | Proxy: {}\n",
+        writeln!(
+            t,
+            "{:<6} | {:<30} | {:<20} | TTL: {:<6} | Proxy: {}",
             r.record_type,
             r.name,
             r.content,
@@ -17,7 +32,8 @@ pub fn format_records(records: &[DnsRecord]) -> String {
             } else {
                 "No"
             }
-        ));
+        )
+        .unwrap_or(());
     }
     t
 }

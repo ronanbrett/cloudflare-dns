@@ -1,23 +1,16 @@
 use iocraft::prelude::*;
-use std::collections::BTreeSet;
 use std::sync::Arc;
 
 use crate::cloudflare::DnsRecord;
 use crate::state::{AppState, AppView};
-use crate::utils::format_records;
+use crate::utils::{extract_unique_ips, format_records};
 
 pub async fn fetch_all(state: &AppState, rd: &mut State<String>, st: &mut State<String>) {
     match state.client.list_dns_records().await {
         Ok(f) => {
             rd.set(format_records(&f));
             st.set(format!("Loaded {} DNS records", f.len()));
-            let mut ips: BTreeSet<String> = BTreeSet::new();
-            for r in &f {
-                if !ips.contains(&r.content) && !r.content.ends_with('.') {
-                    ips.insert(r.content.clone());
-                }
-            }
-            *state.existing_ips.lock().unwrap() = ips.into_iter().collect();
+            *state.existing_ips.lock().unwrap() = extract_unique_ips(&f);
             *state.records.lock().unwrap() = f;
         }
         Err(e) => {
@@ -56,72 +49,56 @@ pub async fn refresh_task(state: Arc<AppState>, mut rd: State<String>, mut st: S
         Ok(f) => {
             rd.set(format_records(&f));
             st.set(format!("Loaded {} DNS records", f.len()));
-            let mut ips = BTreeSet::new();
-            for r in &f {
-                if !ips.contains(&r.content) && !r.content.ends_with('.') {
-                    ips.insert(r.content.clone());
-                }
-            }
-            *state.existing_ips.lock().unwrap() = ips.into_iter().collect();
+            *state.existing_ips.lock().unwrap() = extract_unique_ips(&f);
             *state.records.lock().unwrap() = f;
         }
         Err(e) => st.set(format!("Error: {}", e)),
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn delete_task(
     state: Arc<AppState>,
-    lsi: usize,
+    record_id: String,
+    record_name: String,
+    record_type: String,
     mut view: State<AppView>,
     mut is_del: State<bool>,
     mut st: State<String>,
     mut rd: State<String>,
 ) {
-    let recs = state.records.lock().unwrap().clone();
-    let idx = lsi as usize;
-    if idx < recs.len() {
-        let rec = &recs[idx];
-        if let Some(ref rid) = rec.id {
-            match state.client.delete_dns_record(rid).await {
-                Ok(_) => {
-                    st.set(format!("Deleted {} ({})", rec.name, rec.record_type));
-                    view.set(AppView::List);
-                    is_del.set(false);
-                    if let Ok(f) = state.client.list_dns_records().await {
-                        rd.set(format_records(&f));
-                        *state.records.lock().unwrap() = f.clone();
-                        let mut ips = BTreeSet::new();
-                        for r in &f {
-                            if !ips.contains(&r.content) && !r.content.ends_with('.') {
-                                ips.insert(r.content.clone());
-                            }
-                        }
-                        *state.existing_ips.lock().unwrap() = ips.into_iter().collect();
-                    }
-                }
-                Err(e) => {
-                    st.set(format!("Failed: {}", e));
-                    is_del.set(false);
-                }
+    match state.client.delete_dns_record(&record_id).await {
+        Ok(_) => {
+            st.set(format!("Deleted {} ({})", record_name, record_type));
+            view.set(AppView::List);
+            is_del.set(false);
+            if let Ok(f) = state.client.list_dns_records().await {
+                rd.set(format_records(&f));
+                *state.existing_ips.lock().unwrap() = extract_unique_ips(&f);
+                *state.records.lock().unwrap() = f;
+            } else {
+                st.set(format!(
+                    "Deleted {} ({}), but refresh failed — press R to reload",
+                    record_name, record_type
+                ));
             }
-        } else {
-            st.set("No record ID".to_string());
+        }
+        Err(e) => {
+            st.set(format!("Failed: {}", e));
             is_del.set(false);
         }
-    } else {
-        st.set("Index out of range".to_string());
-        is_del.set(false);
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn submit_task(
     state: Arc<AppState>,
     eid: String,
     rt: String,
     nm: String,
     ct: String,
-    ttl: String,
-    px: String,
+    ttl: i64,
+    px: bool,
     mut rd: State<String>,
     mut st: State<String>,
     mut view: State<AppView>,
@@ -135,8 +112,8 @@ pub async fn submit_task(
         record_type: rt.clone(),
         name: nm.clone(),
         content: ct.clone(),
-        ttl: Some(ttl.parse().unwrap_or(1)),
-        proxied: Some(px.to_lowercase() == "true"),
+        ttl: Some(ttl),
+        proxied: Some(px),
         comment: None,
     };
     let result = if is_update {
@@ -154,14 +131,13 @@ pub async fn submit_task(
             is.set(false);
             if let Ok(f) = state.client.list_dns_records().await {
                 rd.set(format_records(&f));
-                *state.records.lock().unwrap() = f.clone();
-                let mut ips = BTreeSet::new();
-                for r in &f {
-                    if !ips.contains(&r.content) && !r.content.ends_with('.') {
-                        ips.insert(r.content.clone());
-                    }
-                }
-                *state.existing_ips.lock().unwrap() = ips.into_iter().collect();
+                *state.existing_ips.lock().unwrap() = extract_unique_ips(&f);
+                *state.records.lock().unwrap() = f;
+            } else {
+                st.set(format!(
+                    "{} {} for {}, but refresh failed — press R to reload",
+                    action, rt, nm
+                ));
             }
         }
         Err(e) => {

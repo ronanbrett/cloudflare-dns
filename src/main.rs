@@ -23,7 +23,6 @@ fn main() -> Result<()> {
 
     println!("Starting Cloudflare DNS Manager...");
     println!("Zone ID: {}", zone_id);
-    println!("API Token: {}...", &api_token[..8.min(api_token.len())]);
     println!();
 
     app::run_app(api_token, zone_id)

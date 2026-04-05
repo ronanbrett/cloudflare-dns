@@ -143,6 +143,7 @@ impl StatusMessage {
 }
 
 /// Generate the appropriate contextual status message based on current state
+#[allow(clippy::too_many_arguments)]
 pub fn generate_contextual_status(
     view: &AppView,
     form_focus: usize,

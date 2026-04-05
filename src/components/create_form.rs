@@ -39,11 +39,11 @@ pub fn CreateForm(props: &CreateFormProps, mut hooks: Hooks) -> impl Into<AnyEle
     let focus = props.form_focus;
     let title = props.title.clone();
     let hint = props.hint.clone();
-    let form_type = props.form_type.clone();
-    let form_name = props.form_name.clone();
-    let form_content = props.form_content.clone();
-    let form_ttl = props.form_ttl.clone();
-    let form_proxied = props.form_proxied.clone();
+    let form_type = props.form_type;
+    let form_name = props.form_name;
+    let form_content = props.form_content;
+    let form_ttl = props.form_ttl;
+    let form_proxied = props.form_proxied;
     let submit_label = props.submit_label.clone();
 
     let content = element! {
@@ -66,14 +66,11 @@ pub fn CreateForm(props: &CreateFormProps, mut hooks: Hooks) -> impl Into<AnyEle
                         Text(content: hint, color: OVERLAY1)
                     }
                     FormField(label: "Type", value: form_type, has_focus: focus == 0)
-                    View(height: 1) { Text(content: "  (Space to cycle: A, AAAA, CNAME, MX...)", color: OVERLAY1) }
                     FormField(label: "Name", value: form_name, has_focus: focus == 1)
                     FormField(label: "IP Address", value: form_content, has_focus: focus == 2)
-                    View(height: 1) { Text(content: "  (Space: open selector | Type: enter new IP)", color: OVERLAY1) }
                     FormField(label: "TTL", value: form_ttl, has_focus: focus == 3)
-                    View(height: 1) { Text(content: "  (1 = auto)", color: OVERLAY1) }
+                    View(height: 2) { Text(content: "  (1 = auto)", color: OVERLAY1) }
                     FormField(label: "Proxied", value: form_proxied, has_focus: focus == 4)
-                    View(height: 1) { Text(content: "  (Space to toggle)", color: OVERLAY1) }
                     View(
                         margin_top: 1,
                         border_style: if focus == 5 { BorderStyle::Round } else { BorderStyle::None },
@@ -90,8 +87,10 @@ pub fn CreateForm(props: &CreateFormProps, mut hooks: Hooks) -> impl Into<AnyEle
 
     render_app_layout(
         AppLayoutConfig {
-            title: title,
-            menu: " [R]efresh  [C]reate  [E]dit  [Q]uit".to_string(),
+            title,
+            menu:
+                " Up/Down: navigate | Space on IP: selector | Enter: submit | Esc: cancel | [Q]uit"
+                    .to_string(),
             menu_bg: SURFACE1,
             status: props.status.clone(),
             ..Default::default()

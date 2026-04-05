@@ -2,21 +2,11 @@ use crate::colors::*;
 use crate::components::app_layout::{render_app_layout, AppLayoutConfig};
 use iocraft::prelude::*;
 
-#[derive(Props)]
+#[derive(Default, Props)]
 pub struct DeleteConfirmProps {
     pub rec_name: String,
     pub deleting: bool,
     pub status: String,
-}
-
-impl Default for DeleteConfirmProps {
-    fn default() -> Self {
-        Self {
-            rec_name: String::new(),
-            deleting: false,
-            status: String::new(),
-        }
-    }
 }
 
 #[component]
@@ -55,7 +45,6 @@ pub fn DeleteConfirm(
             menu_bg: RED,
             menu_color: CRUST,
             status: props.status.clone(),
-            ..Default::default()
         },
         content,
         &mut hooks,

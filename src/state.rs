@@ -44,38 +44,12 @@ pub struct StatusBarProps {
     pub message: String,
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Default)]
 pub enum AppView {
+    #[default]
     List,
     Create,
     Edit,
     Delete,
     IpSelect,
-}
-
-impl Default for AppView {
-    fn default() -> Self {
-        Self::List
-    }
-}
-
-#[derive(Clone)]
-pub struct FormState {
-    pub record_type: String,
-    pub name: String,
-    pub content: String,
-    pub ttl: String,
-    pub proxied: String,
-}
-
-impl Default for FormState {
-    fn default() -> Self {
-        Self {
-            record_type: "A".to_string(),
-            name: String::new(),
-            content: String::new(),
-            ttl: "1".to_string(),
-            proxied: "false".to_string(),
-        }
-    }
 }

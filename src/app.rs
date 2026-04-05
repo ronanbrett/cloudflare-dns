@@ -32,6 +32,8 @@ pub fn App(props: &AppProps, mut hooks: Hooks) -> impl Into<AnyElement<'static>>
     let form_ttl = hooks.use_state(|| "1".to_string());
     let form_proxied = hooks.use_state(|| "false".to_string());
     let is_submitting = hooks.use_state(|| false);
+    // iocraft's use_state requires FnOnce, not a direct value
+    #[allow(clippy::redundant_closure)]
     let editing_record_id = hooks.use_state(|| String::new()); // empty = creating
 
     // IP selector
@@ -41,23 +43,27 @@ pub fn App(props: &AppProps, mut hooks: Hooks) -> impl Into<AnyElement<'static>>
     let list_sel_idx = hooks.use_state(|| 0);
     let is_deleting = hooks.use_state(|| false);
 
+    // Refresh guard
+    let is_refreshing = hooks.use_state(|| false);
+
     // ── Context Encapsulation ───────────────────────────────────────────
     let ctx = AppCtx {
-        view: view.clone(),
-        should_exit: should_exit.clone(),
-        form_focus: form_focus.clone(),
-        form_type: form_type.clone(),
-        form_name: form_name.clone(),
-        form_content: form_content.clone(),
-        form_ttl: form_ttl.clone(),
-        form_proxied: form_proxied.clone(),
-        is_submitting: is_submitting.clone(),
-        editing_record_id: editing_record_id.clone(),
-        ip_sel_idx: ip_sel_idx.clone(),
-        list_sel_idx: list_sel_idx.clone(),
-        is_deleting: is_deleting.clone(),
-        records_display: records_display.clone(),
-        status: status.clone(),
+        view,
+        should_exit,
+        form_focus,
+        form_type,
+        form_name,
+        form_content,
+        form_ttl,
+        form_proxied,
+        is_submitting,
+        editing_record_id,
+        ip_sel_idx,
+        list_sel_idx,
+        is_deleting,
+        is_refreshing,
+        records_display,
+        status,
         state: props.state.clone(),
     };
 
@@ -73,41 +79,40 @@ pub fn App(props: &AppProps, mut hooks: Hooks) -> impl Into<AnyElement<'static>>
     let records = props.state.records.lock().unwrap().clone();
     let ips = props.state.existing_ips.lock().unwrap().clone();
     let sel_text = format_selector(&ips, ip_sel_idx.get());
-    let rec_name = if list_sel_idx.get() < records.len() {
+
+    let lsi = list_sel_idx.get();
+    let rec_name: String = if lsi < records.len() {
         format!(
             "{} ({})",
-            records[list_sel_idx.get()].name,
-            records[list_sel_idx.get()].record_type
+            records[lsi].name, records[lsi].record_type
         )
     } else {
         "Unknown".to_string()
     };
-    let editing = matches!(view.get(), AppView::Edit);
-    let lsi = list_sel_idx.get();
+    let is_editing = matches!(view.get(), AppView::Edit);
 
     // ── Contextual status text ──────────────────────────────────────────
     let status_val = status.to_string();
     let is_transient = StatusMessage::is_transient(&status_val);
-    
+
     let status_text = if is_transient {
         status_val
     } else {
-        let editing = matches!(view.get(), AppView::Edit);
-        let rec_name = if list_sel_idx.get() < records.len() {
-            Some(records[list_sel_idx.get()].name.as_str())
+        let rec_name_opt = if lsi < records.len() {
+            Some(records[lsi].name.as_str())
         } else {
             None
         };
-        
+
         let status_msg = generate_contextual_status(
             &view.get(),
             form_focus.get() as usize,
             &form_type.to_string(),
             &form_proxied.to_string(),
-            editing,
+            is_editing,
             records.len(),
-            list_sel_idx.get(),
-            rec_name,
+            lsi,
+            rec_name_opt,
         );
         status_msg.render()
     };
@@ -123,12 +128,12 @@ pub fn App(props: &AppProps, mut hooks: Hooks) -> impl Into<AnyElement<'static>>
         }
         .into_any(),
         AppView::Create | AppView::Edit => {
-            let title = if editing {
+            let title = if is_editing {
                 " Edit DNS Record "
             } else {
                 " Create DNS Record "
             };
-            let hint = if editing {
+            let hint = if is_editing {
                 "Tab: navigate | Space on IP: selector | Enter: save | Esc: cancel"
             } else {
                 "Tab: navigate | Space on IP: selector | Enter: submit | Esc: cancel"
@@ -140,11 +145,11 @@ pub fn App(props: &AppProps, mut hooks: Hooks) -> impl Into<AnyElement<'static>>
                     form_content: form_content,
                     form_ttl: form_ttl,
                     form_proxied: form_proxied,
-                    form_focus: form_focus.get() as i32,
+                    form_focus: form_focus.get(),
                     status: status_text,
                     title: title.to_string(),
                     hint: hint.to_string(),
-                    submit_label: if editing { "Save" } else { "Submit" },
+                    submit_label: if is_editing { "Save" } else { "Submit" },
                 )
             }
             .into_any()

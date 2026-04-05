@@ -3,21 +3,11 @@ use crate::colors::*;
 use crate::components::app_layout::{render_app_layout, AppLayoutConfig};
 use iocraft::prelude::*;
 
-#[derive(Props)]
+#[derive(Default, Props)]
 pub struct RecordListProps {
     pub records: Vec<DnsRecord>,
     pub selected_idx: i32,
     pub status: String,
-}
-
-impl Default for RecordListProps {
-    fn default() -> Self {
-        Self {
-            records: Vec::new(),
-            selected_idx: 0,
-            status: String::new(),
-        }
-    }
 }
 
 #[component]
