@@ -39,9 +39,15 @@ pub fn fill_form_from_record(
     form_ttl: &mut State<String>,
     form_proxied: &mut State<String>,
     editing_id: &mut State<String>,
+    domain_suffix: &str,
 ) {
     form_type.set(rec.record_type.clone());
-    form_name.set(rec.name.clone());
+    // Strip the domain suffix from the name (e.g., "pihole.robrett.com" -> "pihole")
+    let short_name = rec
+        .name
+        .strip_suffix(domain_suffix)
+        .unwrap_or(&rec.name);
+    form_name.set(short_name.to_string());
     form_content.set(rec.content.clone());
     form_ttl.set(rec.ttl.unwrap_or(1).to_string());
     form_proxied.set(

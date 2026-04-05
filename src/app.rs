@@ -81,6 +81,7 @@ pub fn App(props: &AppProps, mut hooks: Hooks) -> impl Into<AnyElement<'static>>
     let records = props.state.records.lock().unwrap().clone();
     let ips = props.state.existing_ips.lock().unwrap().clone();
     let zone_name = props.state.zone_name.lock().unwrap().clone();
+    let domain_suffix = format!(".{}", &zone_name);
     let sel_text = format_selector(&ips, ip_sel_idx.get());
 
     let lsi = list_sel_idx.get();
@@ -154,7 +155,7 @@ pub fn App(props: &AppProps, mut hooks: Hooks) -> impl Into<AnyElement<'static>>
                     hint: hint.to_string(),
                     submit_label: if is_editing { "Save" } else { "Submit" },
                     zone_name: zone_name.clone(),
-                    domain_suffix: format!(".{}", zone_name),
+                    domain_suffix: domain_suffix.clone(),
                 )
             }
             .into_any()

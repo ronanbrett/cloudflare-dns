@@ -183,6 +183,7 @@ pub fn use_app_events(hooks: &mut Hooks<'_, '_>, ctx: &AppCtx) {
                             let edit_id = rec.id.clone().unwrap_or_default();
                             eid.set(edit_id.clone());
                             ff.set(0);
+                            let domain_suffix = format!(".{}", state.zone_name.lock().unwrap().clone());
                             fill_form_from_record(
                                 rec,
                                 &mut ft,
@@ -191,6 +192,7 @@ pub fn use_app_events(hooks: &mut Hooks<'_, '_>, ctx: &AppCtx) {
                                 &mut ftl,
                                 &mut fp,
                                 &mut eid,
+                                &domain_suffix,
                             );
                             view.set(AppView::Edit);
                             st.set(format!(

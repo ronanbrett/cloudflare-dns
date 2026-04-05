@@ -18,7 +18,7 @@ impl Default for AppLayoutConfig {
         Self {
             border_color: BLUE,
             title: " ☁ Cloudflare DNS ".to_string(),
-            title_bg: YELLOW,
+            title_bg: BLUE,
             title_color: CRUST,
             menu: String::new(),
             menu_bg: SURFACE0,

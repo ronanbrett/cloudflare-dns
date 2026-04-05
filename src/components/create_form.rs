@@ -92,6 +92,7 @@ pub fn CreateForm(props: &CreateFormProps, mut hooks: Hooks) -> impl Into<AnyEle
     render_app_layout(
         AppLayoutConfig {
             title,
+            title_bg: GREEN,
             menu:
                 " Up/Down: navigate | Space on IP: selector | Enter: submit | Esc: cancel | [Q]uit"
                     .to_string(),

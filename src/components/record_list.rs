@@ -1,6 +1,6 @@
 use crate::cloudflare::DnsRecord;
 use crate::colors::*;
-use crate::components::app_layout::{render_app_layout, AppLayoutConfig};
+use crate::components::app_layout::{AppLayoutConfig, render_app_layout};
 use iocraft::prelude::*;
 
 #[derive(Default, Props)]
@@ -45,13 +45,14 @@ pub fn RecordList(props: &RecordListProps, mut hooks: Hooks) -> impl Into<AnyEle
         View(flex_grow: 1.0, padding_left: 2, padding_right: 2, padding_top: 1, padding_bottom: 1) {
             Text(content: rec_text, color: TEXT)
         }
-    }.into_any();
+    }
+    .into_any();
 
     render_app_layout(
         AppLayoutConfig {
             border_color: BLUE,
             title,
-            title_bg: YELLOW,
+            title_bg: ORANGE,
             title_color: CRUST,
             menu: " [R]efresh  [C]reate  [E]dit  [D]elete  [Q]uit".to_string(),
             menu_bg: SURFACE1,
