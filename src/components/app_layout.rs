@@ -36,7 +36,7 @@ pub fn render_app_layout<'a>(
     let (width, height) = hooks.use_terminal_size();
 
     element! {
-        View(width: width, height: height, background_color: CRUST, border_style: BorderStyle::Double, border_color: config.border_color, flex_direction: FlexDirection::Column) {
+        View(width: width, height: height, background_color: CRUST, flex_direction: FlexDirection::Column) {
             View(background_color: config.title_bg, padding_left: 2, padding_right: 2, padding_top: 1, padding_bottom: 1) {
                 Text(content: config.title, color: config.title_color, weight: Weight::Bold)
             }

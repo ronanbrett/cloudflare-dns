@@ -37,6 +37,30 @@ https://github.com/user-attachments/assets/c61a1d9b-c41d-4d63-822e-90cb93405184
 
 ### 3. Configure the Application
 
+You have two options for configuration:
+
+#### Option A: YAML Config File (Recommended for installed binary)
+
+```bash
+# Create config directory
+mkdir -p ~/.config/cloudflaredns
+
+# Copy the example config file
+cp config.example.yaml ~/.config/cloudflaredns/config.yaml
+
+# Edit with your credentials
+nano ~/.config/cloudflaredns/config.yaml
+```
+
+Your `config.yaml` should look like:
+```yaml
+cloudflare:
+  api_token: "your_api_token_here"
+  zone_id: "your_zone_id_here"
+```
+
+#### Option B: Environment File (For development)
+
 ```bash
 # Copy the example environment file
 cp .env.example .env
@@ -50,6 +74,11 @@ Your `.env` file should look like:
 CLOUDFLARE_API_TOKEN=your_api_token_here
 CLOUDFLARE_ZONE_ID=your_zone_id_here
 ```
+
+**Configuration Priority**: The app checks in this order:
+1. `~/.config/cloudflaredns/config.yaml` (YAML config file)
+2. `.env` in current directory
+3. Environment variables
 
 ### 4. Build and Run
 

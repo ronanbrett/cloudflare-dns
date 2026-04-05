@@ -1,0 +1,11 @@
+# Cloudflare DNS Manager Configuration
+# Save this file as: ~/.config/cloudflare-dns/config.yaml
+
+cloudflare:
+  # Your Cloudflare API Token
+  # Get it from: https://dash.cloudflare.com/profile/api-tokens
+  api_token: "your_api_token_here"
+
+  # Your Cloudflare Zone ID
+  # Find it in: Cloudflare Dashboard > Your Domain > API section
+  zone_id: "your_zone_id_here"
