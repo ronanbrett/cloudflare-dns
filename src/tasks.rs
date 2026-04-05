@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use crate::cloudflare::DnsRecord;
 use crate::state::{AppState, AppView};
-use crate::utils::{extract_unique_ips, format_records};
+use crate::utils::{extract_unique_ips, format_records, strip_domain_suffix};
 
 pub async fn fetch_all(state: &AppState, rd: &mut State<String>, st: &mut State<String>) {
     // Fetch zone name for display in title
@@ -43,11 +43,8 @@ pub fn fill_form_from_record(
 ) {
     form_type.set(rec.record_type.clone());
     // Strip the domain suffix from the name (e.g., "pihole.robrett.com" -> "pihole")
-    let short_name = rec
-        .name
-        .strip_suffix(domain_suffix)
-        .unwrap_or(&rec.name);
-    form_name.set(short_name.to_string());
+    let short_name = strip_domain_suffix(&rec.name, domain_suffix);
+    form_name.set(short_name);
     form_content.set(rec.content.clone());
     form_ttl.set(rec.ttl.unwrap_or(1).to_string());
     form_proxied.set(

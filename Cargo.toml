@@ -14,3 +14,8 @@ anyhow = "1"
 crossterm = "0.28"
 smol = "2"
 dirs = "5"
+
+[dev-dependencies]
+tempfile = "3"
+mockito = "1"
+serial_test = "3"
