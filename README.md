@@ -2,30 +2,55 @@
 
 A TUI for managing Cloudflare DNS records programmatically.
 
+[![Crates.io](https://img.shields.io/crates/v/cloudflaredns.svg)](https://crates.io/crates/cloudflaredns)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
+## Installation
+
+### Option 1: Install from Crates.io (Recommended)
+
+```bash
+cargo install cloudflare-dns
+```
+
+### Option 2: Install from Source
+
+```bash
+git clone https://github.com/ronanbrett/cloudflare-dns.git
+cd cloudflare-dns
+cargo install --path .
+```
+
+### Option 3: Build and Run Directly
+
+```bash
+git clone https://github.com/ronanbrett/cloudflare-dns.git
+cd cloudflare-dns
+cargo run --release
+```
 
 ## Features
 
 📋 List all DNS records in your Cloudflare zone
 
-<img width="2646" height="2006" alt="CleanShot 2026-04-05 at 21 55 14@2x" src="https://github.com/user-attachments/assets/ce24acbb-2fc7-4777-bb09-082aa005d1cb" />
+<img alt="CleanShot 2026-04-05 at 21 55 14@2x" src="https://github.com/user-attachments/assets/ce24acbb-2fc7-4777-bb09-082aa005d1cb" />
 
 ➕ Create new DNS records (A, AAAA, CNAME, MX, TXT, etc.)
 
-<img width="2646" height="2006" alt="CleanShot 2026-04-05 at 21 55 25@2x" src="https://github.com/user-attachments/assets/08cb4b5f-4413-4eae-bc47-6531c80fa6b7" />
+<img alt="CleanShot 2026-04-05 at 21 55 25@2x" src="https://github.com/user-attachments/assets/08cb4b5f-4413-4eae-bc47-6531c80fa6b7" />
 
 ✏️ Edit existing DNS records
 
-<img width="2646" height="2006" alt="CleanShot 2026-04-05 at 21 55 46@2x" src="https://github.com/user-attachments/assets/39d419a8-8bf2-4ee3-8925-14c4a0cdfb76" />
+<img alt="CleanShot 2026-04-05 at 21 55 46@2x" src="https://github.com/user-attachments/assets/39d419a8-8bf2-4ee3-8925-14c4a0cdfb76" />
 
 🗑️ Delete DNS records
 
-<img width="2646" height="2006" alt="CleanShot 2026-04-05 at 21 54 55@2x" src="https://github.com/user-attachments/assets/1e810742-95f9-4d8e-9ef5-ce8bfb6da687" />
+<img   alt="CleanShot 2026-04-05 at 21 54 55@2x" src="https://github.com/user-attachments/assets/1e810742-95f9-4d8e-9ef5-ce8bfb6da687" />
 
 
 ## Prerequisites
 
-- Rust 1.70+ (with Cargo)
+- Rust 1.85+ (with Cargo)
 - A Cloudflare account with a domain
 - Cloudflare API Token with DNS edit permissions
 
@@ -37,6 +62,7 @@ A TUI for managing Cloudflare DNS records programmatically.
 2. Click "Create Token"
 3. Use the "Edit zone DNS" template or create a custom token with:
    - **Permissions**: `Zone` → `DNS` → `Edit`
+   - **Permissions**: `Zone` → `Zone` → `Read`
    - **Zone Resources**: Select your domain
 4. Copy the token (you won't see it again!)
 
@@ -71,7 +97,31 @@ cloudflare:
   zone_id: "your_zone_id_here"
 ```
 
-#### Option B: Environment File (For development)
+
+### Option B: Environment Variables
+
+```bash
+export CLOUDFLARE_API_TOKEN=your_api_token_here
+export CLOUDFLARE_ZONE_ID=your_zone_id_here
+```
+
+**Note**: This is not persistent and will be lost when the application is closed.
+
+```bash
+# Bash
+
+echo 'export CLOUDFLARE_API_TOKEN=your_api_token_here' >> ~/.bashrc
+echo 'export CLOUDFLARE_ZONE_ID=your_zone_id_here' >> ~/.bashrc
+```
+
+```zsh
+# Zsh 
+
+echo 'export CLOUDFLARE_API_TOKEN=your_api_token_here' >> ~/.zshrc
+echo 'export CLOUDFLARE_ZONE_ID=your_zone_id_here' >> ~/.zshrc
+```
+
+#### Environment File (Development Only)
 
 ```bash
 # Copy the example environment file
@@ -92,13 +142,17 @@ CLOUDFLARE_ZONE_ID=your_zone_id_here
 2. `.env` in current directory
 3. Environment variables
 
-### 4. Build and Run
+### 4. Run the Application
+
+If you installed via `cargo install`:
 
 ```bash
-# Build the application
-cargo build --release
+cloudflare-dns
+```
 
-# Run the application
+If you're running from source:
+
+```bash
 cargo run --release
 ```
 
@@ -108,17 +162,37 @@ Once the application starts, you'll see a terminal UI displaying your DNS record
 
 ### Controls
 
-- **L** - List/refresh DNS records
-- **C** - Create new DNS record
-- **D** - Delete selected record
-- **Q** - Quit the application
+#### Record List View
+- **↑/↓** — Navigate records
+- **R** — Refresh DNS records
+- **C** — Create new DNS record
+- **E** — Edit selected record
+- **D** — Delete selected record
+- **Q** — Quit
+
+#### Create/Edit Form
+- **Tab / ↑↓** — Navigate fields
+- **Space** on Type — Cycle DNS record type
+- **Space** on IP Address — Open existing IP selector
+- **Space** on Proxied — Toggle proxy on/off
+- **Enter** — Submit
+- **Esc** — Cancel
+
+#### Delete Confirmation
+- **Enter** — Confirm deletion
+- **Esc** — Cancel
+
+#### IP Selector
+- **↑/↓** — Navigate IPs
+- **Enter** — Select IP
+- **Esc** — Back to form
 
 ### DNS Record Fields
 
 When creating a record:
-- **Type**: DNS record type (A, AAAA, CNAME, MX, TXT, SRV, CAA)
-- **Name**: The record name (e.g., `example.com` or `sub.example.com`)
-- **Content**: IP address, hostname, or value
+- **Type**: DNS record type (A, AAAA, CNAME, MX, TXT, SRV, CAA, NS, PTR)
+- **Name**: The record name (e.g., `www` for `www.example.com`)
+- **Ip Address**: IP address, hostname, or value
 - **TTL**: Time-to-live in seconds (use `1` for automatic)
 - **Proxied**: Route through Cloudflare's proxy (orange cloud)
 
@@ -127,12 +201,16 @@ When creating a record:
 ```
 cloudflare-dns/
 ├── src/
-│   ├── main.rs           # Entry point, configuration loading
-│   ├── app.rs            # iocraft TUI components and application logic
-│   └── cloudflare.rs     # Cloudflare API client
-├── Cargo.toml            # Rust dependencies
-├── .env.example          # Example environment file
-└── README.md             # This file
+│   ├── api/            # Cloudflare API client, models, errors, cache
+│   ├── ui/             # TUI components, state, events, theme
+│   ├── tasks/          # Background async tasks
+│   ├── utils/          # Pure utility functions
+│   ├── config.rs       # Configuration loading
+│   ├── main.rs         # Entry point
+│   └── lib.rs          # Library interface for testing
+├── Cargo.toml
+├── config.example.yaml
+└── README.md
 ```
 
 ## API Reference
@@ -154,14 +232,22 @@ See [Cloudflare API Documentation](https://developers.cloudflare.com/api/resourc
 
 ## Troubleshooting
 
-### "CLOUDFLARE_API_TOKEN environment variable is not set"
+### "Failed to load configuration"
 
-Make sure you have a `.env` file in the project root with your API token, or export the variables manually:
+Make sure you've set up your config file or environment variables:
+
+```bash
+# Create config directory and file
+mkdir -p ~/.config/cloudflaredns
+nano ~/.config/cloudflaredns/config.yaml
+```
+
+Or set environment variables manually:
 
 ```bash
 export CLOUDFLARE_API_TOKEN=your_token
 export CLOUDFLARE_ZONE_ID=your_zone_id
-cargo run
+cloudflaredns
 ```
 
 ### "API request failed with status 403"
@@ -178,8 +264,8 @@ cargo run
 ## Development
 
 ```bash
-# Run in development mode with hot reload
-cargo watch -x run
+# Run in development mode
+cargo run
 
 # Run tests
 cargo test
@@ -188,12 +274,15 @@ cargo test
 cargo fmt
 
 # Lint code
-cargo clippy
+cargo clippy -- -D warnings
+
+# Build release binary
+cargo build --release
 ```
 
 ## License
 
-MIT
+This project is licensed under the [GNU Affero General Public License v3.0](LICENSE).
 
 ## Contributing
 

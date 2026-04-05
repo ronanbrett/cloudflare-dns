@@ -7,9 +7,7 @@ use reqwest::blocking::Client;
 use std::sync::Arc;
 
 use super::error::{CloudflareError, CloudflareResult};
-use super::models::{
-    ApiResponse, DnsRecord, DnsRecordResponse, ZoneResponse,
-};
+use super::models::{ApiResponse, DnsRecord, DnsRecordResponse, ZoneResponse};
 
 /// Internal client state wrapped in Arc for thread-safe sharing.
 struct Inner {
@@ -83,9 +81,8 @@ impl CloudflareClient {
                 return Ok(inner.zone_id.clone());
             }
 
-            let api_response: ApiResponse<ZoneResponse> = response
-                .json()
-                .map_err(CloudflareError::RequestError)?;
+            let api_response: ApiResponse<ZoneResponse> =
+                response.json().map_err(CloudflareError::RequestError)?;
 
             if let Some(zone) = api_response.result {
                 Ok(zone.name)
@@ -126,9 +123,8 @@ impl CloudflareClient {
                     return Err(CloudflareError::HttpError { status, body });
                 }
 
-                let api_response: ApiResponse<Vec<DnsRecordResponse>> = response
-                    .json()
-                    .map_err(CloudflareError::RequestError)?;
+                let api_response: ApiResponse<Vec<DnsRecordResponse>> =
+                    response.json().map_err(CloudflareError::RequestError)?;
 
                 if !api_response.success {
                     let errors: Vec<String> = api_response
@@ -190,9 +186,8 @@ impl CloudflareClient {
                 return Err(CloudflareError::HttpError { status, body });
             }
 
-            let api_response: ApiResponse<DnsRecordResponse> = response
-                .json()
-                .map_err(CloudflareError::RequestError)?;
+            let api_response: ApiResponse<DnsRecordResponse> =
+                response.json().map_err(CloudflareError::RequestError)?;
 
             if !api_response.success {
                 let errors: Vec<String> = api_response
@@ -203,9 +198,7 @@ impl CloudflareClient {
                 return Err(CloudflareError::ApiErrors(errors));
             }
 
-            let result = api_response
-                .result
-                .ok_or(CloudflareError::NoResult)?;
+            let result = api_response.result.ok_or(CloudflareError::NoResult)?;
 
             Ok(DnsRecord {
                 id: Some(result.id),
@@ -228,10 +221,7 @@ impl CloudflareClient {
         let record = record.clone();
 
         smol::unblock(move || {
-            let record_id = record
-                .id
-                .as_ref()
-                .ok_or(CloudflareError::MissingRecordId)?;
+            let record_id = record.id.as_ref().ok_or(CloudflareError::MissingRecordId)?;
 
             let response = inner
                 .client
@@ -251,9 +241,8 @@ impl CloudflareClient {
                 return Err(CloudflareError::HttpError { status, body });
             }
 
-            let api_response: ApiResponse<DnsRecordResponse> = response
-                .json()
-                .map_err(CloudflareError::RequestError)?;
+            let api_response: ApiResponse<DnsRecordResponse> =
+                response.json().map_err(CloudflareError::RequestError)?;
 
             if !api_response.success {
                 let errors: Vec<String> = api_response
@@ -264,9 +253,7 @@ impl CloudflareClient {
                 return Err(CloudflareError::ApiErrors(errors));
             }
 
-            let result = api_response
-                .result
-                .ok_or(CloudflareError::NoResult)?;
+            let result = api_response.result.ok_or(CloudflareError::NoResult)?;
 
             Ok(DnsRecord {
                 id: Some(result.id),
@@ -304,9 +291,8 @@ impl CloudflareClient {
                 return Err(CloudflareError::HttpError { status, body });
             }
 
-            let api_response: ApiResponse<serde_json::Value> = response
-                .json()
-                .map_err(CloudflareError::RequestError)?;
+            let api_response: ApiResponse<serde_json::Value> =
+                response.json().map_err(CloudflareError::RequestError)?;
 
             if !api_response.success {
                 let errors: Vec<String> = api_response

@@ -1,4 +1,4 @@
-use cloudflaredns::config::Config;
+use cloudflare_dns::config::Config;
 use std::fs;
 use std::io::Write;
 use std::path::{Component, PathBuf};
@@ -56,7 +56,7 @@ fn test_config_yaml_invalid_missing_cloudflare_key() {
 zone_id: zone_xyz
 "#;
 
-    let parsed: Result<cloudflaredns::config::Config, _> = serde_yaml::from_str(content);
+    let parsed: Result<cloudflare_dns::config::Config, _> = serde_yaml::from_str(content);
     assert!(parsed.is_err());
 }
 

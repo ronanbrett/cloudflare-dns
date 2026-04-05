@@ -19,7 +19,7 @@ pub fn RecordList(props: &RecordListProps, mut hooks: Hooks) -> impl Into<AnyEle
         "No DNS records found\n\n↑↓: navigate | [D]elete | [C]reate".to_string()
     } else {
         let mut t = format!(
-            "{} DNS Records  (↑↓: navigate, D: delete, R: refresh)\n\n",
+            "{} DNS Records  (↑↓: navigate, d: delete, r: refresh)\n\n",
             props.records.len()
         );
         for (i, r) in props.records.iter().enumerate() {

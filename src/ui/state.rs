@@ -62,6 +62,8 @@ pub struct FormFieldProps {
     pub has_focus: bool,
     /// Optional suffix text (e.g., domain suffix)
     pub suffix: String,
+    /// Whether this field should be editable as text input (false for cycled fields like Type/Proxied)
+    pub is_editable: bool,
 }
 
 /// Props for the StatusBar component.

@@ -104,11 +104,15 @@ impl StatusMessage {
                 is_editing,
             } => match context {
                 FormFieldContext::Type => {
-                    format!("Field 1/6 — Type: {} | Space: cycle types", form_type)
+                    format!(
+                        "Field 1/6 — Type: {} | Press Space to cycle types",
+                        form_type
+                    )
                 }
-                FormFieldContext::Name => "Field 2/6 — Name: e.g. www (subdomain)".to_string(),
+                FormFieldContext::Name => "Field 2/6 — Name: e.g. nginx".to_string(),
                 FormFieldContext::Content => {
-                    "Field 3/6 — IP Address | Space: open selector | Type: enter IP".to_string()
+                    "Field 3/6 — IP Address | Press Space to use an existing address | Type: enter IP"
+                        .to_string()
                 }
                 FormFieldContext::Ttl => "Field 4/6 — TTL: seconds (1 = auto)".to_string(),
                 FormFieldContext::Proxied => {
@@ -117,7 +121,10 @@ impl StatusMessage {
                     } else {
                         "Grey cloud OFF"
                     };
-                    format!("Field 5/6 — Proxied: {}", proxied_status)
+                    format!(
+                        "Field 5/6 — Proxied: {} | Press Space to toggle",
+                        proxied_status
+                    )
                 }
                 FormFieldContext::Submit => {
                     let action = if *is_editing { "Save" } else { "Create" };
@@ -130,12 +137,12 @@ impl StatusMessage {
                 record_name,
             } => {
                 format!(
-                    "{} of {} — {} | E: edit | D: delete | R: refresh | C: create | Q: quit",
+                    "{} of {} — {} | e: edit | d: delete | r: refresh | c: create | q: quit",
                     position, total, record_name
                 )
             }
             StatusMessage::EmptyListHelp => {
-                "No records | C: create your first DNS record | Q: quit".to_string()
+                "No records | c: create your first DNS record | q: quit".to_string()
             }
         }
     }
@@ -344,7 +351,10 @@ mod tests {
             form_proxied: "false".to_string(),
             is_editing: false,
         };
-        assert_eq!(status.render(), "Field 1/6 — Type: A | Space: cycle types");
+        assert_eq!(
+            status.render(),
+            "Field 1/6 — Type: A | Press Space to cycle types"
+        );
     }
 
     #[test]
@@ -355,7 +365,7 @@ mod tests {
             form_proxied: "false".to_string(),
             is_editing: false,
         };
-        assert_eq!(status.render(), "Field 2/6 — Name: e.g. www (subdomain)");
+        assert_eq!(status.render(), "Field 2/6 — Name: e.g. nginx");
     }
 
     #[test]
@@ -368,7 +378,7 @@ mod tests {
         };
         assert_eq!(
             status.render(),
-            "Field 3/6 — IP Address | Space: open selector | Type: enter IP"
+            "Field 3/6 — IP Address | Press Space to use an existing address | Type: enter IP"
         );
     }
 
@@ -391,7 +401,10 @@ mod tests {
             form_proxied: "true".to_string(),
             is_editing: false,
         };
-        assert_eq!(status.render(), "Field 5/6 — Proxied: Orange cloud ON");
+        assert_eq!(
+            status.render(),
+            "Field 5/6 — Proxied: Orange cloud ON | Press Space to toggle"
+        );
     }
 
     #[test]
@@ -402,7 +415,10 @@ mod tests {
             form_proxied: "false".to_string(),
             is_editing: false,
         };
-        assert_eq!(status.render(), "Field 5/6 — Proxied: Grey cloud OFF");
+        assert_eq!(
+            status.render(),
+            "Field 5/6 — Proxied: Grey cloud OFF | Press Space to toggle"
+        );
     }
 
     #[test]
@@ -436,7 +452,7 @@ mod tests {
         };
         assert_eq!(
             status.render(),
-            "3 of 10 — test.example.com | E: edit | D: delete | R: refresh | C: create | Q: quit"
+            "3 of 10 — test.example.com | e: edit | d: delete | r: refresh | c: create | q: quit"
         );
     }
 
@@ -445,7 +461,7 @@ mod tests {
         let status = StatusMessage::EmptyListHelp;
         assert_eq!(
             status.render(),
-            "No records | C: create your first DNS record | Q: quit"
+            "No records | c: create your first DNS record | q: quit"
         );
     }
 

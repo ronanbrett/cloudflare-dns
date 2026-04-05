@@ -1,11 +1,16 @@
 [package]
-name = "cloudflaredns"
-version = "0.1.1"
+name = "cloudflare-dns"
+version = "0.1.4"
 edition = "2024"
 description = "A TUI for managing Cloudflare DNS records programmatically"
 authors = ["ronanbrett"]
-license = "MIT"
+license = "AGPL-3.0"
 repository = "https://github.com/ronanbrett/cloudflare-dns"
+readme = "README.md"
+keywords = ["cloudflare", "dns", "tui", "terminal", "cloudflare-api"]
+categories = ["command-line-utilities", "network-programming"]
+documentation = "https://docs.rs/cloudflare-dns"
+exclude = [".github/", ".qwen/", "target/", "*.lock"]
 
 [dependencies]
 iocraft = "0.7"

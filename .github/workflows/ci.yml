@@ -86,6 +86,6 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: cloudflaredns
-          path: target/release/cloudflaredns
+          name: cloudflare-dns
+          path: target/release/cloudflare-dns
           retention-days: 7

@@ -30,7 +30,10 @@ pub async fn fetch_all(
         if let Some(cached_records) = cache.get() {
             let cached_records = cached_records.clone();
             rd.set(format_records(&cached_records));
-            st.set(format!("Loaded {} DNS records (cached)", cached_records.len()));
+            st.set(format!(
+                "Loaded {} DNS records (cached)",
+                cached_records.len()
+            ));
             *state.existing_ips.lock().unwrap() = extract_unique_ips(&cached_records);
             *state.records.lock().unwrap() = cached_records;
             return;

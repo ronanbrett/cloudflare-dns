@@ -1,4 +1,4 @@
-use crate::ui::colors::{BLUE, OVERLAY1, SURFACE0, TEAL};
+use crate::ui::colors::{BLUE, OVERLAY1, SURFACE0, TEAL, TEXT};
 use crate::ui::state::FormFieldProps;
 use iocraft::prelude::*;
 
@@ -21,6 +21,22 @@ pub fn FormField(props: &FormFieldProps, _hooks: Hooks) -> impl Into<AnyElement<
         };
     };
 
+    let field_content = if props.is_editable {
+        element! {
+            TextInput(
+                has_focus: props.has_focus,
+                value: value.to_string(),
+                on_change: move |new_value| value.set(new_value),
+            )
+        }
+        .into_any()
+    } else {
+        element! {
+            Text(content: value.to_string(), color: TEXT, weight: Weight::Bold)
+        }
+        .into_any()
+    };
+
     element! {
         View(flex_direction: FlexDirection::Row, margin_bottom: 1, align_items: AlignItems::Center) {
             View(width: 12) {
@@ -33,11 +49,7 @@ pub fn FormField(props: &FormFieldProps, _hooks: Hooks) -> impl Into<AnyElement<
                 width: 40,
                 background_color: SURFACE0,
             ) {
-                TextInput(
-                    has_focus: props.has_focus,
-                    value: value.to_string(),
-                    on_change: move |new_value| value.set(new_value),
-                )
+                #(field_content)
             }
             View(margin_left: 1) {
                 Text(content: props.suffix.clone(), color: OVERLAY1)

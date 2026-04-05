@@ -154,13 +154,19 @@ mod tests {
     fn test_config_from_env() {
         // Set environment variables for testing
         unsafe {
-            std::env::set_var("CLOUDFLARE_API_TOKEN", "test_api_token_123");
-            std::env::set_var("CLOUDFLARE_ZONE_ID", "test_zone_id_456");
+            std::env::set_var("CLOUDFLARE_API_TOKEN", "test_api_token_1234567890abcdef");
+            std::env::set_var("CLOUDFLARE_ZONE_ID", "0123456789abcdef0123456789abcdef");
         }
 
         let config = Config::load_from_env().expect("Failed to load config from env");
-        assert_eq!(config.cloudflare_api_token, "test_api_token_123");
-        assert_eq!(config.cloudflare_zone_id, "test_zone_id_456");
+        assert_eq!(
+            config.cloudflare_api_token,
+            "test_api_token_1234567890abcdef"
+        );
+        assert_eq!(
+            config.cloudflare_zone_id,
+            "0123456789abcdef0123456789abcdef"
+        );
 
         // Clean up
         unsafe {
@@ -172,7 +178,7 @@ mod tests {
     #[test]
     fn test_config_from_env_missing_token() {
         unsafe {
-            std::env::set_var("CLOUDFLARE_ZONE_ID", "test_zone_id_456");
+            std::env::set_var("CLOUDFLARE_ZONE_ID", "0123456789abcdef0123456789abcdef");
             std::env::remove_var("CLOUDFLARE_API_TOKEN");
         }
 
@@ -187,7 +193,7 @@ mod tests {
     #[test]
     fn test_config_from_env_missing_zone_id() {
         unsafe {
-            std::env::set_var("CLOUDFLARE_API_TOKEN", "test_api_token_123");
+            std::env::set_var("CLOUDFLARE_API_TOKEN", "test_api_token_1234567890abcdef");
             std::env::remove_var("CLOUDFLARE_ZONE_ID");
         }
 

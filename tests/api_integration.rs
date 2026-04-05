@@ -2,8 +2,8 @@
 ///
 /// These tests verify that the client correctly handles API responses,
 /// errors, and pagination without making real network requests.
-use cloudflaredns::api::CloudflareClient;
-use cloudflaredns::api::DnsRecord;
+use cloudflare_dns::api::CloudflareClient;
+use cloudflare_dns::api::DnsRecord;
 
 #[test]
 fn test_list_dns_records_success() {

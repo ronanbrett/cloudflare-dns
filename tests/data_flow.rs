@@ -1,7 +1,7 @@
-use cloudflaredns::api::DnsRecord;
-use cloudflaredns::ui::state::AppView;
-use cloudflaredns::ui::status::{StatusMessage, StatusType, generate_contextual_status};
-use cloudflaredns::utils::{
+use cloudflare_dns::api::DnsRecord;
+use cloudflare_dns::ui::state::AppView;
+use cloudflare_dns::ui::status::{StatusMessage, StatusType, generate_contextual_status};
+use cloudflare_dns::utils::{
     extract_unique_ips, format_records, format_selector, strip_domain_suffix,
 };
 
@@ -202,8 +202,8 @@ fn test_status_for_record_list_with_realistic_data() {
     let rendered = status.render();
     assert!(rendered.contains("3 of 5"));
     assert!(rendered.contains("www.example.com"));
-    assert!(rendered.contains("E: edit"));
-    assert!(rendered.contains("D: delete"));
+    assert!(rendered.contains("e: edit"));
+    assert!(rendered.contains("d: delete"));
 }
 
 #[test]
@@ -287,7 +287,7 @@ fn test_empty_list_to_create_status_flow() {
 
     let status = generate_contextual_status(&AppView::List, 0, "A", "false", false, 0, 0, None);
     let rendered = status.render();
-    assert!(rendered.contains("C: create your first"));
+    assert!(rendered.contains("c: create your first"));
 }
 
 #[test]

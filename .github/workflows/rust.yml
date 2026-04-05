@@ -44,5 +44,5 @@ jobs:
       run: cargo test --verbose
     - uses: actions/upload-artifact@v4
       with:
-        name: cloudflaredns
-        path: target/release/cloudflaredns
+        name: cloudflare-dns
+        path: target/release/cloudflare-dns

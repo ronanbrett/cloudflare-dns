@@ -29,7 +29,7 @@ pub fn App(props: &AppProps, mut hooks: Hooks) -> impl Into<AnyElement<'static>>
     let view = hooks.use_state(|| AppView::List);
 
     // Form fields
-    let form_focus = hooks.use_state(|| 0);
+    let form_focus = hooks.use_state(|| 1);
     let form_type = hooks.use_state(|| "A".to_string());
     let form_name = hooks.use_state(|| "".to_string());
     let form_content = hooks.use_state(|| "".to_string());
@@ -138,11 +138,7 @@ pub fn App(props: &AppProps, mut hooks: Hooks) -> impl Into<AnyElement<'static>>
             } else {
                 " Create DNS Record "
             };
-            let hint = if is_editing {
-                "Tab: navigate | Space on IP: selector | Enter: save | Esc: cancel"
-            } else {
-                "Tab: navigate | Space on IP: selector | Enter: submit | Esc: cancel"
-            };
+            let hint = "↑↓: navigate | esc: cancel";
             element! {
                 CreateForm(
                     form_type: form_type,
@@ -154,9 +150,10 @@ pub fn App(props: &AppProps, mut hooks: Hooks) -> impl Into<AnyElement<'static>>
                     status: status_text,
                     title: title.to_string(),
                     hint: hint.to_string(),
-                    submit_label: if is_editing { "Save" } else { "Submit" },
+                    submit_label: if is_editing { "Save" } else { "Create" },
                     zone_name: zone_name.clone(),
                     domain_suffix: domain_suffix.clone(),
+                    is_editing: is_editing,
                 )
             }
             .into_any()
