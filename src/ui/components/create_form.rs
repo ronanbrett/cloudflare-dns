@@ -74,9 +74,9 @@ pub fn CreateForm(props: &CreateFormProps, mut hooks: Hooks) -> impl Into<AnyEle
                         Text(content: hint, color: OVERLAY1)
                     }
                     FormField(label: "Type", value: form_type, has_focus: focus == 0, is_editable: false)
-                    FormField(label: "Name", value: form_name, has_focus: focus == 1, suffix: props.domain_suffix.clone())
-                    FormField(label: "IP Address", value: form_content, has_focus: focus == 2)
-                    FormField(label: "TTL", value: form_ttl, has_focus: focus == 3)
+                    FormField(label: "Name", value: form_name, has_focus: focus == 1, suffix: props.domain_suffix.clone(), is_editable: true)
+                    FormField(label: "IP Address", value: form_content, has_focus: focus == 2, is_editable: true)
+                    FormField(label: "TTL", value: form_ttl, has_focus: focus == 3, is_editable: true)
                     FormField(label: "Proxied", value: form_proxied, has_focus: focus == 4, is_editable: false)
                     View(
                         margin_top: 1,
